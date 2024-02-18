@@ -53,7 +53,7 @@ button:hover img{
     align-items: center; 
     max-width: 60%; 
     margin: 0 auto; 
-    margin-bottom: -90px; 
+    margin-bottom: -100px; 
 }
 
 .settings-image img {
@@ -69,6 +69,7 @@ button:hover img{
 .buttons-settings img {
     max-width: 20%; 
     height: auto;
+    margin-left: 45px;
 }
 
 .back-button {
@@ -96,4 +97,34 @@ button:hover img{
 
 .leaderboard-image img {
     max-width: 100%; 
+}
+
+.leaderboard-wrapper {
+    position: relative;
+    text-align: center;
+}
+
+
+.buttons-row {
+    position: absolute; 
+    bottom: 12%; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+}
+
+.custom-button {
+    margin: 40px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.custom-button img {
+    width: 100%;
+    height: auto;
+    max-width: 300px;
 }
