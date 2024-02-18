@@ -13,7 +13,6 @@ body {
 .logo {
     display: flex;
     justify-content: center;
-    margin-bottom: 4em;
     padding-top: 50px;
 }
 
@@ -46,4 +45,55 @@ button img{
 
 button:hover img{
     filter: brightness(70%);
+}
+
+.settings-image {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    max-width: 60%; 
+    margin: 0 auto; 
+    margin-bottom: -90px; 
+}
+
+.settings-image img {
+    max-width: 100%; 
+}
+
+.buttons-settings {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
+
+.buttons-settings img {
+    max-width: 20%; 
+    height: auto;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.back-button img {
+    width: 130px; 
+    height: auto; 
+}
+
+.leaderboard-image {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    max-width: 70%; 
+    margin: 0 auto; 
+}
+
+.leaderboard-image img {
+    max-width: 100%; 
 }
