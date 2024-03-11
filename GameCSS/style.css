@@ -95,6 +95,18 @@ button:hover img{
     margin: 0 auto; 
 }
 
+.game-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 85%; /*Aqui para hacer mas grande la pantalla de juego*/
+    margin: 0 auto;
+}
+
+.game-image img {
+    max-width: 100%; 
+}
+
 .leaderboard-image img {
     max-width: 100%; 
 }
