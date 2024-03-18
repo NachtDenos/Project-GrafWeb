@@ -1,5 +1,6 @@
 body {
     margin: 0;
+    overflow: hidden;
 }
 
 .container-main{
@@ -99,12 +100,41 @@ button:hover img{
     display: flex;
     justify-content: center;
     align-items: center;
-    max-width: 85%; /*Aqui para hacer mas grande la pantalla de juego*/
+    width: 85%!important; /*Aqui para hacer mas grande la pantalla de juego*/
     margin: 0 auto;
+    position:relative;
+    height: 85%!important;
+    margin-top: 10px;
 }
 
-.game-image img {
+.game-image #frame {
     max-width: 100%; 
+    position:relative;
+    z-index: 2200;
+}
+
+.game-image #icon {
+    position:absolute;
+    z-index: 2300;
+    top:-20px;
+    left:-20px;
+    max-width: 12%;
+}
+
+canvas {
+    position: absolute;
+    z-index: 2100;
+}
+
+#game-container {
+    position:absolute;
+    align-self: center;
+    justify-self: center;
+    display: flex!important;
+    min-height: 100%;
+    min-width: 100%;
+    border-radius: 35px;
+    overflow: hidden;
 }
 
 .leaderboard-image img {
