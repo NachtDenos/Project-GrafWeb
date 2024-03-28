@@ -37,7 +37,7 @@ class BasicCharacterController {
     const loader = new FBXLoader();
     loader.setPath('../GameModels/Character/');
     loader.load('character.fbx', (fbx) => {
-      fbx.scale.setScalar(0.1);
+      fbx.scale.setScalar(0.02);
       fbx.traverse(c => {
         c.castShadow = true;
       });
@@ -448,10 +448,10 @@ class CharacterControllerDemo {
     light = new THREE.AmbientLight(0xFFFFFF, 0.25);
     this._scene.add(light);
 
-    //const controls = new OrbitControls(
-    //  this._camera, this._threejs.domElement);
-    //controls.target.set(0, 10, 0);
-    //controls.update();
+    /*const controls = new OrbitControls(
+      this._camera, this._threejs.domElement);
+    controls.target.set(0, 10, 0);
+    controls.update();*/
 
     /*const fbxLoader = new FBXLoader();
                     fbxLoader.load('../GameModels/escenarioPrueba1.fbx', (object) => {
@@ -470,8 +470,8 @@ class CharacterControllerDemo {
     const loader = new GLTFLoader();
 
     loader.load(
-        '../GameModels/escenario2.gltf',
-        function ( gltf ) {
+        '../GameModels/escenario.gltf',
+        ( gltf ) => {
             this._scene.add( gltf.scene );
             gltf.animations; // Array<THREE.AnimationClip>
             gltf.scene; // THREE.Group
@@ -480,12 +480,12 @@ class CharacterControllerDemo {
             gltf.asset; // Object
         },
         // called while loading is progressing
-        function ( xhr ) {
+        ( xhr )  => {
             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         },
         // called when loading has errors
-        function ( error ) {
-            console.log( 'An error happened' );
+        ( error ) => {
+            console.log( 'An error happened:',error );
         }
     );
 
