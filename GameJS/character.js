@@ -4,6 +4,10 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
 
+export { BasicCharacterController };
+
+let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
+
 class BasicCharacterControllerProxy {
   constructor(animations) {
     this._animations = animations;
@@ -88,54 +92,72 @@ class BasicCharacterController {
         Math.abs(frameDecceleration.z), Math.abs(velocity.z));
 
     velocity.add(frameDecceleration);
+    
+    if(this._params.isMainPlayer){
+      const controlObject = this._target;
+      const _Q = new THREE.Quaternion();
+      const _A = new THREE.Vector3();
+      const _R = controlObject.quaternion.clone();
 
-    const controlObject = this._target;
-    const _Q = new THREE.Quaternion();
-    const _A = new THREE.Vector3();
-    const _R = controlObject.quaternion.clone();
+      const acc = this._acceleration.clone();
+      if (this._input._keys.shift) {
+        acc.multiplyScalar(2.0);
+      }
 
-    const acc = this._acceleration.clone();
-    if (this._input._keys.shift) {
-      acc.multiplyScalar(2.0);
+      if (this._input._keys.forward) {
+        velocity.z += acc.z * timeInSeconds;
+      }
+      if (this._input._keys.backward) {
+        velocity.z -= acc.z * timeInSeconds;
+      }
+      if (this._input._keys.left) {
+        _A.set(0, 1, 0);
+        _Q.setFromAxisAngle(_A, 4.0 * Math.PI * timeInSeconds * this._acceleration.y);
+        _R.multiply(_Q);
+      }
+      if (this._input._keys.right) {
+        _A.set(0, 1, 0);
+        _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * this._acceleration.y);
+        _R.multiply(_Q);
+      }
+
+      controlObject.quaternion.copy(_R);
+
+      const oldPosition = new THREE.Vector3();
+      oldPosition.copy(controlObject.position);
+
+      const forward = new THREE.Vector3(0, 0, 1);
+      forward.applyQuaternion(controlObject.quaternion);
+      forward.normalize();
+
+      const sideways = new THREE.Vector3(1, 0, 0);
+      sideways.applyQuaternion(controlObject.quaternion);
+      sideways.normalize();
+
+      sideways.multiplyScalar(velocity.x * timeInSeconds);
+      forward.multiplyScalar(velocity.z * timeInSeconds);
+
+      controlObject.position.add(forward);
+      controlObject.position.add(sideways);
+
+      oldPosition.copy(controlObject.position);
+
+      fb.child("Players").child(this._params.playerID).child("orientation").update({
+        position: {
+          x:controlObject.position.x,
+          y:controlObject.position.y, 
+          z:controlObject.position.z
+        },
+        rotation: {
+          w:controlObject.quaternion.w, 
+          x:controlObject.quaternion.x, 
+          y:controlObject.quaternion.y, 
+          z:controlObject.quaternion.z
+        }
+
+      });
+
     }
-
-    if (this._input._keys.forward) {
-      velocity.z += acc.z * timeInSeconds;
-    }
-    if (this._input._keys.backward) {
-      velocity.z -= acc.z * timeInSeconds;
-    }
-    if (this._input._keys.left) {
-      _A.set(0, 1, 0);
-      _Q.setFromAxisAngle(_A, 4.0 * Math.PI * timeInSeconds * this._acceleration.y);
-      _R.multiply(_Q);
-    }
-    if (this._input._keys.right) {
-      _A.set(0, 1, 0);
-      _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * this._acceleration.y);
-      _R.multiply(_Q);
-    }
-
-    controlObject.quaternion.copy(_R);
-
-    const oldPosition = new THREE.Vector3();
-    oldPosition.copy(controlObject.position);
-
-    const forward = new THREE.Vector3(0, 0, 1);
-    forward.applyQuaternion(controlObject.quaternion);
-    forward.normalize();
-
-    const sideways = new THREE.Vector3(1, 0, 0);
-    sideways.applyQuaternion(controlObject.quaternion);
-    sideways.normalize();
-
-    sideways.multiplyScalar(velocity.x * timeInSeconds);
-    forward.multiplyScalar(velocity.z * timeInSeconds);
-
-    controlObject.position.add(forward);
-    controlObject.position.add(sideways);
-
-    oldPosition.copy(controlObject.position);
 
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
@@ -387,192 +409,3 @@ class IdleState extends State {
     }
   }
 };
-
-class CharacterControllerDemo {
-  constructor() {
-    this._Initialize();
-  }
-
-  _Initialize() {
-
-    this._contenedor = document.getElementById('game-container');
-    let width = this._contenedor.clientWidth;
-    let height = this._contenedor.clientHeight;
-
-
-    this._threejs = new THREE.WebGLRenderer({
-      antialias: true,
-    });
-    this._threejs.outputEncoding = THREE.sRGBEncoding;
-    this._threejs.shadowMap.enabled = true;
-    this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-    this._threejs.setPixelRatio(window.devicePixelRatio);
-    this._threejs.setSize( width, height);
-
-    this._contenedor.appendChild(this._threejs.domElement);    
-
-    window.addEventListener('resize', () => {
-      this._OnWindowResize();
-    }, false);
-
-    const fov = 45;
-    const aspect = width / height;
-    const near = 1.0;
-    const far = 1000.0;
-    this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this._camera.position.set(0, 15, 33);
-    this._camera.lookAt(new THREE.Vector3(0,-7,0));
-    this._camera.aspect = width / height;
-
-
-    this._scene = new THREE.Scene();
-    this._scene.background = new THREE.Color("#7FE2F3");
-
-    let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-    light.position.set(-100, 100, 100);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;
-    light.shadow.bias = -0.001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
-    light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.left = 50;
-    light.shadow.camera.right = -50;
-    light.shadow.camera.top = 50;
-    light.shadow.camera.bottom = -50;
-    this._scene.add(light);
-
-    light = new THREE.AmbientLight(0xFFFFFF, 0.25);
-    this._scene.add(light);
-
-    /*const controls = new OrbitControls(
-      this._camera, this._threejs.domElement);
-    controls.target.set(0, 10, 0);
-    controls.update();*/
-
-    /*const fbxLoader = new FBXLoader();
-                    fbxLoader.load('../GameModels/escenarioPrueba1.fbx', (object) => {
-                        object.scale.multiplyScalar(0.003); 
-                        this._scene.add(object);
-                        },
-                        (xhr) => {
-                            console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-                        },
-                        (error) => {
-                            console.log(error)
-                        }
-                    );*/
-    
-
-    const loader = new GLTFLoader();
-
-    loader.load(
-        '../GameModels/escenario.gltf',
-        ( gltf ) => {
-            this._scene.add( gltf.scene );
-            gltf.animations; // Array<THREE.AnimationClip>
-            gltf.scene; // THREE.Group
-            gltf.scenes; // Array<THREE.Group>
-            gltf.cameras; // Array<THREE.Camera>
-            gltf.asset; // Object
-        },
-        // called while loading is progressing
-        ( xhr )  => {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        // called when loading has errors
-        ( error ) => {
-            console.log( 'An error happened:',error );
-        }
-    );
-
-    this._mixers = [];
-    this._previousRAF = null;
-
-    this._LoadAnimatedModel();
-    this._RAF();
-  }
-
-  _LoadAnimatedModel() {
-    const params = {
-      camera: this._camera,
-      scene: this._scene,
-    }
-    this._controls = new BasicCharacterController(params);
-  }
-
-  _LoadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
-    const loader = new FBXLoader();
-    loader.setPath(path);
-    loader.load(modelFile, (fbx) => {
-      fbx.scale.setScalar(0.1);
-      fbx.traverse(c => {
-        c.castShadow = true;
-      });
-      fbx.position.copy(offset);
-
-      const anim = new FBXLoader();
-      anim.setPath(path);
-      anim.load(animFile, (anim) => {
-        const m = new THREE.AnimationMixer(fbx);
-        this._mixers.push(m);
-        const idle = m.clipAction(anim.animations[0]);
-        idle.play();
-      });
-      this._scene.add(fbx);
-    });
-  }
-
-  _LoadModel() {
-    const loader = new GLTFLoader();
-    loader.load('./resources/thing.glb', (gltf) => {
-      gltf.scene.traverse(c => {
-        c.castShadow = true;
-      });
-      this._scene.add(gltf.scene);
-    });
-  }
-
-  _OnWindowResize() {
-    const widthUpdate = this._contenedor.clientWidth;
-    const heightUpdate = this._contenedor.clientHeight;
-    this._camera.aspect = widthUpdate / heightUpdate;
-    this._camera.updateProjectionMatrix();
-    this._threejs.setSize(widthUpdate, heightUpdate);
-  }
-
-  _RAF() {
-    requestAnimationFrame((t) => {
-      if (this._previousRAF === null) {
-        this._previousRAF = t;
-      }
-
-      this._RAF();
-
-      this._threejs.render(this._scene, this._camera);
-      this._Step(t - this._previousRAF);
-      this._previousRAF = t;
-    });
-  }
-
-  _Step(timeElapsed) {
-    const timeElapsedS = timeElapsed * 0.001;
-    if (this._mixers) {
-      this._mixers.map(m => m.update(timeElapsedS));
-    }
-
-    if (this._controls) {
-      this._controls.Update(timeElapsedS);
-    }
-  }
-}
-
-
-let _APP = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-  _APP = new CharacterControllerDemo();
-});
