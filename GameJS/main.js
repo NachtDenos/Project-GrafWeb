@@ -40,7 +40,7 @@ function initialize() {
     const far = 1000.0;
     camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.set(0, 15, 33);
-    camera.lookAt(new THREE.Vector3(0,-7,0));
+    camera.lookAt(new THREE.Vector3(0,-12,0));
     camera.aspect = width / height;
 
 
@@ -89,7 +89,7 @@ function initialize() {
     const loader = new GLTFLoader();
 
     loader.load(
-        '../GameModels/escenario.gltf',
+        '../GameModels/escenario3.gltf',
         ( gltf ) => {
             scene.add( gltf.scene );
             gltf.animations; // Array<THREE.AnimationClip>
@@ -117,14 +117,19 @@ function initialize() {
 
     RAF();
 
-    window.onunload = function() {
-        fb.child("Players").child(playerID).remove();
-    };
+    loadChick('../GameModels/', 'ChickWalk.glb');
 
-    window.onbeforeunload = function() {
-        fb.child("Players").child(playerID).remove();
-    };
+    //window.onbeforeunload = function() {
+    //    fb.child("Players").child(playerID).remove();
+    //};
 
+    window.addEventListener('beforeunload', function (event) {
+      fb.child("Players").child(playerID).remove();
+    });
+
+    window.addEventListener('pagehide', function(){
+      fb.child("Players").child(playerID).remove();
+    })
 }
 
 function initMainPlayer(){
@@ -173,15 +178,15 @@ function listenToOtherPlayers(){
 
 }
 
-function loadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
+function loadAnimatedModelAndPlay(path, modelFile, animFile) {
       const loader = new FBXLoader();
       loader.setPath(path);
       loader.load(modelFile, (fbx) => {
-        fbx.scale.setScalar(0.1);
+        fbx.scale.setScalar(0.02);
         fbx.traverse(c => {
           c.castShadow = true;
         });
-        fbx.position.copy(offset);
+        //fbx.position.copy(offset);
   
         const anim = new FBXLoader();
         anim.setPath(path);
@@ -194,6 +199,37 @@ function loadAnimatedModelAndPlay(path, modelFile, animFile, offset) {
         scene.add(fbx);
       });
 }
+
+function loadChick(path, modelFile) {
+  const loader = new GLTFLoader();
+  loader.setPath(path);
+  loader.load(modelFile, (gltf) => {
+    const model = gltf.scene;
+    model.scale.setScalar(1);
+    model.traverse(c => {
+      c.castShadow = true;
+    });
+
+    const mixer = new THREE.AnimationMixer(model);
+    mixers.push(mixer);
+    const animations = gltf.animations;
+    const actions = {};
+    animations.forEach((clip) => {
+      actions[clip.name] = mixer.clipAction(clip);
+    });
+
+    // Example: Play animation by name
+    const animationName = 'Run';
+    if (actions[animationName]) {
+      actions[animationName].play();
+    }
+
+    scene.add(model);
+  });
+
+  
+}
+
 function loadModel() {
       const loader = new GLTFLoader();
       loader.load('./resources/thing.glb', (gltf) => {

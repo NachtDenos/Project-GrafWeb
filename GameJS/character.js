@@ -30,9 +30,10 @@ class BasicCharacterController {
     this._velocity = new THREE.Vector3(0, 0, 0);
 
     this._animations = {};
-    this._input = new BasicCharacterControllerInput();
+    this._input = new BasicCharacterControllerInput(this._params.isMainPlayer);
+
     this._stateMachine = new CharacterFSM(
-        new BasicCharacterControllerProxy(this._animations));
+        new BasicCharacterControllerProxy(this._animations), this._params.isMainPlayer);
 
     this._LoadModels();
   }
@@ -41,7 +42,7 @@ class BasicCharacterController {
     const loader = new FBXLoader();
     loader.setPath('../GameModels/Character/');
     loader.load('character.fbx', (fbx) => {
-      fbx.scale.setScalar(0.02);
+      fbx.scale.setScalar(0.015);
       fbx.traverse(c => {
         c.castShadow = true;
       });
@@ -70,7 +71,7 @@ class BasicCharacterController {
       loader.setPath('../GameModels/Character/');
       loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
-      loader.load('Idle.fbx', (a) => { _OnLoad('idle', a); });
+      loader.load('Idle2.fbx', (a) => { _OnLoad('idle', a); });
     });
   }
 
@@ -166,11 +167,11 @@ class BasicCharacterController {
 };
 
 class BasicCharacterControllerInput {
-  constructor() {
-    this._Init();    
+  constructor(isMainPlayer) {
+    this._Init(isMainPlayer);    
   }
 
-  _Init() {
+  _Init(isMainPlayer) {
     this._keys = {
       forward: false,
       backward: false,
@@ -178,8 +179,11 @@ class BasicCharacterControllerInput {
       right: false,
       shift: false,
     };
-    document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
-    document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+
+    //if(this._params.isMainPlayer){
+      document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
+      document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+    //}
   }
 
   _onKeyDown(event) {
@@ -257,9 +261,10 @@ class FiniteStateMachine {
 };
 
 class CharacterFSM extends FiniteStateMachine {
-  constructor(proxy) {
+  constructor(proxy, isMainPlayer) {
     super();
     this._proxy = proxy;
+    this._isMainPlayer = isMainPlayer;
     this._Init();
   }
 
@@ -316,11 +321,17 @@ class WalkState extends State {
   }
 
   Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward) {
-      if (input._keys.shift) {
-        this._parent.SetState('run');
+    console.log(this._parent._isMainPlayer);
+
+    if(this._parent._isMainPlayer){
+
+      if (input._keys.forward || input._keys.backward) {
+        if (input._keys.shift) {
+          this._parent.SetState('run');
+        }
+        return;
       }
-      return;
+
     }
 
     this._parent.SetState('idle');
@@ -363,13 +374,18 @@ class RunState extends State {
   }
 
   Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward) {
-      if (!input._keys.shift) {
-        this._parent.SetState('walk');
-      }
-      return;
-    }
 
+    if(this._parent._isMainPlayer){
+
+      if (input._keys.forward || input._keys.backward) {
+        if (!input._keys.shift) {
+          this._parent.SetState('walk');
+        }
+        return;
+      }
+
+    }
+    
     this._parent.SetState('idle');
   }
 };
@@ -402,10 +418,14 @@ class IdleState extends State {
   }
 
   Update(_, input) {
-    if (input._keys.forward || input._keys.backward) {
-      this._parent.SetState('walk');
-    } else if (input._keys.space) {
-      this._parent.SetState('dance');
+
+    if(this._parent._isMainPlayer){
+
+      if (input._keys.forward || input._keys.backward) {
+        this._parent.SetState('walk');
+      }
+
     }
+
   }
 };
