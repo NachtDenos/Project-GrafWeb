@@ -143,7 +143,7 @@ class BasicCharacterController {
 
       oldPosition.copy(controlObject.position);
 
-      fb.child("Players").child(this._params.playerID).child("orientation").update({
+      fb.child("Games").child(this._params.gameID).child("Players").child(this._params.playerID).child("orientation").update({
         position: {
           x:controlObject.position.x,
           y:controlObject.position.y, 

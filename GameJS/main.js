@@ -5,149 +5,183 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
 import { Player } from './player.js'; 
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
 let playerID;
 let otherPlayers = {};
+let chicks = {};
 
 function initialize() {
 
-    contenedor = document.getElementById('game-container');
-    let width = contenedor.clientWidth;
-    let height = contenedor.clientHeight;
+    const urlParams = new URLSearchParams(window.location.search);
+    gameID = urlParams.get('id');
 
-
-    renderer = new THREE.WebGLRenderer({
-      antialias: true,
-    });
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize( width, height);
-
-    contenedor.appendChild(renderer.domElement);    
-
-    window.addEventListener('resize', () => {
-      onWindowResize();
-    }, false);
-
-    const fov = 45;
-    const aspect = width / height;
-    const near = 1.0;
-    const far = 1000.0;
-    camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.set(0, 15, 33);
-    camera.lookAt(new THREE.Vector3(0,-12,0));
-    camera.aspect = width / height;
-
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color("#7FE2F3");
-
-    let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-    light.position.set(-100, 100, 100);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;
-    light.shadow.bias = -0.001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
-    light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.left = 50;
-    light.shadow.camera.right = -50;
-    light.shadow.camera.top = 50;
-    light.shadow.camera.bottom = -50;
-    scene.add(light);
-
-    light = new THREE.AmbientLight(0xFFFFFF, 0.25);
-    scene.add(light);
-
-    /*const controls = new OrbitControls(
-    this._camera, this._renderer.domElement);
-    controls.target.set(0, 10, 0);
-    controls.update();*/
-
-    /*const fbxLoader = new FBXLoader();
-                    fbxLoader.load('../GameModels/escenarioPrueba1.fbx', (object) => {
-                        object.scale.multiplyScalar(0.003); 
-                        this._scene.add(object);
-                        },
-                        (xhr) => {
-                            console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-                        },
-                        (error) => {
-                            console.log(error)
-                        }
-                    );*/
+    try {
+      fb.child('Games').child(gameID).once('value', function(snapshot)  {
+        const gameData = snapshot.val();
+        console.log('gameID:', gameID);
+        console.log('gameData:', gameData); 
+        if (gameData) {
+            // gameID exists, retrieve and display the data
+            mode = gameData.Configuration.mode;
+            difficulty = gameData.Configuration.difficulty;
+            map = gameData.Configuration.map;
     
+            console.log('modo:', mode);
+            console.log('dificultad:', difficulty);
+            console.log('mapa:', map);
 
-    const loader = new GLTFLoader();
+            loadScene();
 
-    loader.load(
-        '../GameModels/escenario3.gltf',
-        ( gltf ) => {
-            scene.add( gltf.scene );
-            gltf.animations; // Array<THREE.AnimationClip>
-            gltf.scene; // THREE.Group
-            gltf.scenes; // Array<THREE.Group>
-            gltf.cameras; // Array<THREE.Camera>
-            gltf.asset; // Object
-        },
-        // called while loading is progressing
-        ( xhr )  => {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        // called when loading has errors
-        ( error ) => {
-            console.log( 'An error happened:',error );
+        } else {
+            console.log('game not found');
+            // reedireccionar a una pantalla de 'No se encontró la game'; 
+            window.location.href = 'index.html';
         }
-    );
+      }); 
+    } catch (error) {
+      console.error('Error in Firebase operation:', error);
+      window.location.href = 'index.html';
+    }
+}
 
-    mixers = [];
-    previousRAF = null;
-    
-    initMainPlayer();
+function loadScene(){
+  contenedor = document.getElementById('game-container');
+  let width = contenedor.clientWidth;
+  let height = contenedor.clientHeight;
 
-    listenToOtherPlayers();
 
-    RAF();
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+  });
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize( width, height);
 
+  contenedor.appendChild(renderer.domElement);    
+
+  window.addEventListener('resize', () => {
+    onWindowResize();
+  }, false);
+
+  const fov = 45;
+  const aspect = width / height;
+  const near = 1.0;
+  const far = 1000.0;
+  camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+  camera.position.set(0, 15, 33);
+  camera.lookAt(new THREE.Vector3(0,-12,0));
+  camera.aspect = width / height;
+
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color("#7FE2F3");
+
+  let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+  light.position.set(-100, 100, 100);
+  light.target.position.set(0, 0, 0);
+  light.castShadow = true;
+  light.shadow.bias = -0.001;
+  light.shadow.mapSize.width = 4096;
+  light.shadow.mapSize.height = 4096;
+  light.shadow.camera.near = 0.1;
+  light.shadow.camera.far = 500.0;
+  light.shadow.camera.near = 0.5;
+  light.shadow.camera.far = 500.0;
+  light.shadow.camera.left = 50;
+  light.shadow.camera.right = -50;
+  light.shadow.camera.top = 50;
+  light.shadow.camera.bottom = -50;
+  scene.add(light);
+
+  light = new THREE.AmbientLight(0xFFFFFF, 1.0);
+  scene.add(light);
+
+  /*const fbxLoader = new FBXLoader();
+    fbxLoader.load('../GameModels/escenarioPrueba1.fbx', (object) => {
+      object.scale.multiplyScalar(0.003); 
+      this._scene.add(object);
+      },
+      (xhr) => {
+          console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+    (error) => {
+        console.log(error)
+    }
+  );*/
+  
+
+  const loader = new GLTFLoader();
+  console.log('mapa:' , map);
+  const escenarioURL = '../GameModels/escenario'+ map + '.gltf'
+  console.log(escenarioURL);
+  loader.load(
+      escenarioURL,
+      ( gltf ) => {
+          scene.add( gltf.scene );
+          gltf.animations; // Array<THREE.AnimationClip>
+          gltf.scene; // THREE.Group
+          gltf.scenes; // Array<THREE.Group>
+          gltf.cameras; // Array<THREE.Camera>
+          gltf.asset; // Object
+      },
+      // called while loading is progressing
+      ( xhr )  => {
+          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      },
+      // called when loading has errors
+      ( error ) => {
+          console.log( 'An error happened:',error );
+      }
+  );
+
+  mixers = [];
+  previousRAF = null;
+  
+  initMainPlayer();
+
+  listenToOtherPlayers();
+
+  RAF();
+
+  chickGroup = new THREE.Group();
+  scene.add(chickGroup);
+
+  for (let i = 0; i < 2; i++) {
     loadChick('../GameModels/', 'ChickWalk.glb');
+  }
 
-    //window.onbeforeunload = function() {
-    //    fb.child("Players").child(playerID).remove();
-    //};
+  escenarioBB = new THREE.Sphere(new THREE.Vector3(0,0,0), 1);
 
-    window.addEventListener('beforeunload', function (event) {
-      fb.child("Players").child(playerID).remove();
-    });
+  //window.onbeforeunload = function() {
+  //    fb.child("Players").child(playerID).remove();
+  //};
 
-    window.addEventListener('pagehide', function(){
-      fb.child("Players").child(playerID).remove();
-    })
+  window.addEventListener('beforeunload', function (event) {
+    fb.child("Games").child(gameID).child("Players").child(playerID).remove();
+  });
+
+  window.addEventListener('pagehide', function(){
+    fb.child("Games").child(gameID).child("Players").child(playerID).remove();
+  })
 }
 
 function initMainPlayer(){
-    playerID = fb.child("Players").push().key();
+    playerID = fb.child("Games").child(gameID).child("Players").push().key();
     console.log(fb);
     console.log(playerID);
     
-    fb.child("Players").child(playerID).child("orientation").set({
+    fb.child("Games").child(gameID).child("Players").child(playerID).child("orientation").set({
         position: {x:0, y:0, z:0},
         rotation: {w:0, x:0, y:0, z:0}
     });
 
 
-    player = new Player(playerID, true, scene, camera);
-}
-
-function initOtherPlayer(){
-
+    player = new Player(playerID, gameID, true, scene, camera);
 }
 
 function listenToPlayer(playerData){
@@ -158,9 +192,8 @@ function listenToPlayer(playerData){
         otherPlayers[playerData.key()]._Controls._target.quaternion.copy( playerData.val().orientation.rotation );
     }
 }
-
 function listenToOtherPlayers(){
-    fb.child("Players").on("child_added", function(playerData){
+    fb.child("Games").child(gameID).child("Players").on("child_added", function(playerData){
         // validamos que exista player data
         if(playerData.val()){
             //validamos que el player no sea nuestro jugador y que no sea un jugador que ya existe
@@ -170,14 +203,13 @@ function listenToOtherPlayers(){
 
                 //console.log(otherPlayers[playerData.key()])
 
-                fb.child("Players").child(playerData.key()).on("value",listenToPlayer)
+                fb.child("Games").child(gameID).child("Players").child(playerData.key()).on("value",listenToPlayer)
             
             }
         }
     });
 
 }
-
 function loadAnimatedModelAndPlay(path, modelFile, animFile) {
       const loader = new FBXLoader();
       loader.setPath(path);
@@ -199,13 +231,14 @@ function loadAnimatedModelAndPlay(path, modelFile, animFile) {
         scene.add(fbx);
       });
 }
-
 function loadChick(path, modelFile) {
+  // generarle un ID al pollo
   const loader = new GLTFLoader();
   loader.setPath(path);
   loader.load(modelFile, (gltf) => {
     const model = gltf.scene;
     model.scale.setScalar(1);
+    model.position.set(randomNumber(-9,14), 0, randomNumber(0,19), );
     model.traverse(c => {
       c.castShadow = true;
     });
@@ -217,19 +250,25 @@ function loadChick(path, modelFile) {
     animations.forEach((clip) => {
       actions[clip.name] = mixer.clipAction(clip);
     });
-
-    // Example: Play animation by name
     const animationName = 'Run';
     if (actions[animationName]) {
       actions[animationName].play();
     }
 
     scene.add(model);
+    chickGroup.add(model);
+
+    // bounding box 
+    const BB = new THREE.Box3();
+    BB.setFromObject(model);
+
+    chicks[model.uuid] = {
+      model: model,
+      BB: BB,
+    };
   });
 
-  
 }
-
 function loadModel() {
       const loader = new GLTFLoader();
       loader.load('./resources/thing.glb', (gltf) => {
@@ -259,23 +298,34 @@ function RAF() {
         previousRAF = t;
       });
 }
-
 function step(timeElapsed) {
-      const timeElapsedS = timeElapsed * 0.001;
-      if (mixers) {
-        mixers.map(m => m.update(timeElapsedS));
-      }
+  const timeElapsedS = timeElapsed * 0.001;
+  if (mixers) {
+    mixers.map(m => m.update(timeElapsedS));
+  }
   
-      if (player) {
-        player.Update(timeElapsedS);
-      }
 
-      for (const playerID in otherPlayers) {
-        const otherPlayer = otherPlayers[playerID];
-        otherPlayer.Update(timeElapsedS);
-    }
+  if (player) {
+    player.Update(timeElapsedS);
+  }
+
+  for (const playerID in otherPlayers) {
+    const otherPlayer = otherPlayers[playerID];
+    otherPlayer.Update(timeElapsedS);
+  }
+
+  for (let uuid in chicks) {
+    const entry = chicks[uuid];
+    const model = entry.model;
+    const BB = entry.BB;
+  
+    const meshPosition = model.position.clone(); 
+    BB.translate(meshPosition.x, meshPosition.y, meshPosition.z);
+  }
 }
-
+function randomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+}
 
 let APP = null;
 

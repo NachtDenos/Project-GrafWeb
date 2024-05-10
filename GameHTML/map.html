@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puntuación - Kollector Chicken</title>
     <link rel="stylesheet" href="../GameCSS/style.css">
+    <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
 </head>
 <body>
     <div class="container-main">
@@ -16,26 +17,83 @@
                 <img src="../GameImages/mapas/GUI.png">
             </div>
             <div class="buttons-row">
-                <button class="custom-button">
-                    <a href="game.html">
+                <button class="custom-button" id="primaveraBtn">
                     <img src="../GameImages/mapas/prim.png" alt="Botón 1">
-                    </a>
                 </button>
-                <button class="custom-button">
-                    <a href="game.html">
+                <button class="custom-button" id="otonoBtn">
                     <img src="../GameImages/mapas/otonio.png" alt="Botón 2">
-                    </a>
                 </button>
-                <button class="custom-button">
-                    <a href="game.html">
+                <button class="custom-button" id="inviernoBtn">
                     <img src="../GameImages/mapas/invierno.png" alt="Botón 2">
-                    </a>
                 </button>
             </div>
         </div>
         <button class="back-button" onclick="window.history.back()">
             <img src="../GameImages/regresar.png" alt="Back">
         </button>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Hola');
+                let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const mode = urlParams.get('mode');
+                const difficulty = urlParams.get('difficulty');
+        
+                if (mode && difficulty) {
+                        console.log('Hola2');
+                        const primavera = document.getElementById('primaveraBtn');
+                        const otoño = document.getElementById('otonoBtn');
+                        const invierno = document.getElementById('inviernoBtn');
+
+                        primavera.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            console.log('Primavera button clicked');
+                            
+                            let partidaID = fb.child("Games").push().key();
+                            fb.child("Games").child(partidaID).child("Configuration").update({
+                                mode: mode,
+                                difficulty: difficulty,
+                                map: 'Primavera'
+                            });
+                            window.location.href = `game.html?id=${partidaID}`;
+                        });
+
+                        otoño.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            console.log('Otoño button clicked');
+
+
+                            let partidaID = fb.child("Games").push().key();
+                            fb.child("Games").child(partidaID).child("Configuration").update({
+                                mode: mode,
+                                difficulty: difficulty,
+                                map: 'Otoño'
+                            });
+                            window.location.href = `game.html?id=${partidaID}`;
+                        });
+
+                        invierno.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            console.log('Inverno button clicked');
+
+
+                            let partidaID = fb.child("Games").push().key();
+                            fb.child("Games").child(partidaID).child("Configuration").update({
+                                mode: mode,
+                                difficulty: difficulty,
+                                map: 'Invierno'
+                            });
+                            window.location.href = `game.html?id=${partidaID}`;
+                        });
+
+
+                    //primavera.querySelector('a').href = `map.html?mode=${mode}&difficulty=Facil`;
+                    //otoño.querySelector('a').href = `map.html?mode=${mode}&difficulty=Dificil`;
+
+                }
+            });
+        </script>
     </div>
 </body>
 </html>

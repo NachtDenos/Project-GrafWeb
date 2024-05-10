@@ -16,13 +16,13 @@
                 <img src="../GameImages/Dificultad/dificultad.png">
             </div>
             <div class="buttons-row">
-                <button class="custom-button">
-                    <a href="map.html">
+                <button class="custom-button" id="facil-button">
+                    <a href="map.html?mode=&difficulty=Facil">
                     <img src="../GameImages/Dificultad/facil.png" alt="Botón 1">
                     </a>
                 </button>
-                <button class="custom-button">
-                    <a href="map.html">
+                <button class="custom-button" id="dificil-button">
+                    <a href="map.html?mode=&difficulty=Dificil">
                     <img src="../GameImages/Dificultad/dificil.png" alt="Botón 2">
                     </a>
                 </button>
@@ -31,6 +31,17 @@
         <button class="back-button" onclick="window.history.back()">
             <img src="../GameImages/regresar.png" alt="Back">
         </button>
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+    
+            if (mode) {
+                const facilButton = document.getElementById('facil-button');
+                const dificilButton = document.getElementById('dificil-button');
+                facilButton.querySelector('a').href = `map.html?mode=${mode}&difficulty=Facil`;
+                dificilButton.querySelector('a').href = `map.html?mode=${mode}&difficulty=Dificil`;
+            }
+        </script>
     </div>
 </body>
 </html>

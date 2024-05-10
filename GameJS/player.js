@@ -1,19 +1,22 @@
+import * as THREE from 'three';
 import { BasicCharacterController } from './character.js';
 
 export { Player };
 
 class Player {
-    constructor(playerId, isMainPlayer, scene, camera){
-        this._Init(playerId, isMainPlayer, scene, camera);
+    constructor(playerId, gameId, isMainPlayer, scene, camera){
+        this._Init(playerId, gameId, isMainPlayer, scene, camera);
     }
 
-    _Init(playerId, isMainPlayer, scene, camera) {
+    _Init(playerId, gameId, isMainPlayer, scene, camera) {
         console.log(isMainPlayer)
         this._PlayerID = playerId; 
+        this._gameID = gameId;
         this._IsMainPlayer = isMainPlayer; 
         this._Mesh; 
         this._Scene = scene; 
         this._Camera = camera; 
+        this._BB = new THREE.Box3();
         // create mesh and add mesh to scene 
         this._LoadAnimatedModel();
 
@@ -46,7 +49,8 @@ class Player {
           camera: this._Camera,
           scene: this._Scene,
           isMainPlayer: this._IsMainPlayer,
-          playerID: this._PlayerID
+          playerID: this._PlayerID,
+          gameID: this._gameID
         }
         this._Controls = new BasicCharacterController(params);
     }
