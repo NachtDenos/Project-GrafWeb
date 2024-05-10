@@ -137,6 +137,34 @@ canvas {
     overflow: hidden;
 }
 
+#table-container {
+    position:absolute;
+    align-self: center;
+    justify-self: center;
+    display: flex!important;
+    overflow: hidden;
+    width: 22rem;
+    max-height: 25rem;
+}
+
+#table-container table {
+    min-width: 100%;
+}
+
+.table-row:hover{
+    background-color:darksalmon;
+}
+
+.table-row{
+    padding: 1rem!important;
+    justify-content: space-evenly;
+    justify-self: auto;
+}
+
+.cell-PlayerCount{
+    text-align: center;
+}
+
 .leaderboard-image img {
     max-width: 100%; 
 }

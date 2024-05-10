@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscar partida - Kollector Chicken</title>
+    <title>Buscar Partida - Kollector Chicken</title>
     <link rel="stylesheet" href="../GameCSS/style.css">
+    <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
 </head>
 <body>
     <div class="container-main">
@@ -13,11 +14,74 @@
         </div>
         <div class="leaderboard-image">
             <img src="../GameImages/Busca partida/Busca.png">
-            
+            <div id="table-container" style="z-index: 10;">
+            </div>
         </div>
         <button class="back-button" onclick="window.history.back()">
             <img src="../GameImages/regresar.png" alt="Back">
         </button>
+        <script>
+            let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
+
+            fb.child("Games").once("value", function(snapshot) {
+                const gamePlayerCounts = {};
+
+                // se recorren los hijos de Games 
+                snapshot.forEach(child => {
+                    const gameId = child.key();
+                    console.log(gameId);
+                    const configurationSnapshot = child.child("Configuration");
+
+                    // se filtran solo en los que son multijugador
+                    if (configurationSnapshot.exists() && configurationSnapshot.child("mode").val() === 'Multijugador') {
+                        const playerCount = child.child("Players").numChildren();
+                        gamePlayerCounts[gameId] = playerCount;
+                    }
+                });
+
+                console.log(gamePlayerCounts);
+                displaygamesAndPlayers(gamePlayerCounts);
+            });
+
+            function displaygamesAndPlayers(gamePlayerCounts) {
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const tbody = document.createElement('tbody');
+
+                const headerRow = document.createElement('tr');
+                const headergameId = document.createElement('th');
+                headergameId.textContent = 'GameID';
+                const headerPlayerCount = document.createElement('th');
+                headerPlayerCount.textContent = 'Current Players';
+                headerRow.appendChild(headergameId);
+                headerRow.appendChild(headerPlayerCount);
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                for (const [gameId, playerCount] of Object.entries(gamePlayerCounts)) {
+                    const row = document.createElement('tr');
+                    row.classList.add('table-row');
+                    row.id = gameId; 
+                    row.addEventListener('click', function() {
+                        console.log('Clicked row with ID:', row.id); 
+                        window.location.href = `game.html?id=${row.id}`;
+                    });
+                    const cellgameId = document.createElement('td');
+                    cellgameId.textContent = gameId;
+                    const cellPlayerCount = document.createElement('td');
+                    cellPlayerCount.textContent = playerCount;
+                    cellPlayerCount.classList.add('cell-PlayerCount');
+                    row.appendChild(cellgameId);
+                    row.appendChild(cellPlayerCount);
+                    tbody.appendChild(row);
+                }
+
+                table.appendChild(tbody);
+
+                const tableContainer = document.getElementById('table-container');
+                tableContainer.appendChild(table);
+            }
+        </script>
     </div>
 </body>
 </html>

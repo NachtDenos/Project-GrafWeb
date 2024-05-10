@@ -21,18 +21,11 @@ function initialize() {
     try {
       fb.child('Games').child(gameID).once('value', function(snapshot)  {
         const gameData = snapshot.val();
-        console.log('gameID:', gameID);
-        console.log('gameData:', gameData); 
         if (gameData) {
             // gameID exists, retrieve and display the data
             mode = gameData.Configuration.mode;
             difficulty = gameData.Configuration.difficulty;
             map = gameData.Configuration.map;
-    
-            console.log('modo:', mode);
-            console.log('dificultad:', difficulty);
-            console.log('mapa:', map);
-
             loadScene();
 
         } else {
@@ -116,9 +109,7 @@ function loadScene(){
   
 
   const loader = new GLTFLoader();
-  console.log('mapa:' , map);
-  const escenarioURL = '../GameModels/escenario'+ map + '.gltf'
-  console.log(escenarioURL);
+  const escenarioURL = '../GameModels/escenario'+ map + '.gltf';
   loader.load(
       escenarioURL,
       ( gltf ) => {
@@ -172,8 +163,6 @@ function loadScene(){
 
 function initMainPlayer(){
     playerID = fb.child("Games").child(gameID).child("Players").push().key();
-    console.log(fb);
-    console.log(playerID);
     
     fb.child("Games").child(gameID).child("Players").child(playerID).child("orientation").set({
         position: {x:0, y:0, z:0},
@@ -199,9 +188,8 @@ function listenToOtherPlayers(){
             //validamos que el player no sea nuestro jugador y que no sea un jugador que ya existe
             if( playerID != playerData.key() && !otherPlayers[playerData.key()] ) {
 
-                otherPlayers[playerData.key()] = new Player(playerData.key(), false, scene, camera);
-
-                //console.log(otherPlayers[playerData.key()])
+                console.log('Se detectó que se está agregando otro jugador');
+                otherPlayers[playerData.key()] = new Player(playerData.key(), gameID, false, scene, camera);
 
                 fb.child("Games").child(gameID).child("Players").child(playerData.key()).on("value",listenToPlayer)
             

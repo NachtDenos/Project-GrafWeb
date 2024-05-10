@@ -44,7 +44,7 @@ class Player {
     }
 
     _LoadAnimatedModel() {
-        console.log(this._IsMainPlayer)
+        console.log('Is main player: ', this._IsMainPlayer)
         const params = {
           camera: this._Camera,
           scene: this._Scene,

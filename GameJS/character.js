@@ -26,7 +26,7 @@ class BasicCharacterController {
   _Init(params) {
     this._params = params;
     this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
-    this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
+    this._acceleration = new THREE.Vector3(1, 0.25, 15.0);
     this._velocity = new THREE.Vector3(0, 0, 0);
 
     this._animations = {};
@@ -65,6 +65,7 @@ class BasicCharacterController {
           clip: clip,
           action: action,
         };
+        console.log('Pasó el onload animations');
       };
 
       const loader = new FBXLoader(this._manager);
@@ -106,6 +107,8 @@ class BasicCharacterController {
       }
 
       if (this._input._keys.forward) {
+        console.log(acc.z);
+        console.log('tiempo:', timeInSeconds);
         velocity.z += acc.z * timeInSeconds;
       }
       if (this._input._keys.backward) {
@@ -310,7 +313,7 @@ class WalkState extends State {
         curAction.setEffectiveWeight(1.0);
       }
 
-      curAction.crossFadeFrom(prevAction, 0.5, true);
+      curAction.crossFadeFrom(prevAction, 0.05, true);
       curAction.play();
     } else {
       curAction.play();
@@ -321,7 +324,7 @@ class WalkState extends State {
   }
 
   Update(timeElapsed, input) {
-    console.log(this._parent._isMainPlayer);
+    console.log('es main player:',this._parent._isMainPlayer);
 
     if(this._parent._isMainPlayer){
 
@@ -334,7 +337,9 @@ class WalkState extends State {
 
     }
 
+    console.log(this._parent);
     this._parent.SetState('idle');
+
   }
 };
 
@@ -363,7 +368,7 @@ class RunState extends State {
         curAction.setEffectiveWeight(1.0);
       }
 
-      curAction.crossFadeFrom(prevAction, 0.5, true);
+      curAction.crossFadeFrom(prevAction, 0.05, true);
       curAction.play();
     } else {
       curAction.play();
@@ -407,7 +412,7 @@ class IdleState extends State {
       idleAction.enabled = true;
       idleAction.setEffectiveTimeScale(1.0);
       idleAction.setEffectiveWeight(1.0);
-      idleAction.crossFadeFrom(prevAction, 0.5, true);
+      idleAction.crossFadeFrom(prevAction, 0.05, true);
       idleAction.play();
     } else {
       idleAction.play();
