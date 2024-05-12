@@ -169,14 +169,17 @@ function initMainPlayer(){
         rotation: {w:0, x:0, y:0, z:0}
     });
 
+    fb.child("Games").child(gameID).child("Players").child(playerID).child("keys").set({
+      forward: false,
+      backward: false,
+      shift: false
+  });
 
     player = new Player(playerID, gameID, true, scene, camera);
 }
 
 function listenToPlayer(playerData){
     if(playerData.val() && otherPlayers[playerData.key()]._Controls && otherPlayers[playerData.key()]._Controls._target){
-        console.log(otherPlayers[playerData.key()]._Controls._target.quaternion);
-        console.log(playerData.val().orientation.rotation)
         otherPlayers[playerData.key()]._Controls._target.position.copy( playerData.val().orientation.position );
         otherPlayers[playerData.key()]._Controls._target.quaternion.copy( playerData.val().orientation.rotation );
     }
@@ -185,13 +188,16 @@ function listenToOtherPlayers(){
     fb.child("Games").child(gameID).child("Players").on("child_added", function(playerData){
         // validamos que exista player data
         if(playerData.val()){
-            //validamos que el player no sea nuestro jugador y que no sea un jugador que ya existe
             if( playerID != playerData.key() && !otherPlayers[playerData.key()] ) {
 
                 console.log('Se detectó que se está agregando otro jugador');
                 otherPlayers[playerData.key()] = new Player(playerData.key(), gameID, false, scene, camera);
-
-                fb.child("Games").child(gameID).child("Players").child(playerData.key()).on("value",listenToPlayer)
+                setTimeout(() => {
+                  console.log('otherplayers:', otherPlayers[playerData.key()]._Controls._target); 
+                  otherPlayers[playerData.key()]._Controls._target.position.copy( playerData.val().orientation.position );
+                  otherPlayers[playerData.key()]._Controls._target.quaternion.copy( playerData.val().orientation.rotation );
+                }, 1000);
+                //fb.child("Games").child(gameID).child("Players").child(playerData.key()).on("value",listenToPlayer);
             
             }
         }
@@ -299,6 +305,7 @@ function step(timeElapsed) {
 
   for (const playerID in otherPlayers) {
     const otherPlayer = otherPlayers[playerID];
+    //console.log('for other players:', otherPlayer);
     otherPlayer.Update(timeElapsedS);
   }
 

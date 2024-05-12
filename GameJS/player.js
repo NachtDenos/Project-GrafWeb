@@ -46,11 +46,11 @@ class Player {
     _LoadAnimatedModel() {
         console.log('Is main player: ', this._IsMainPlayer)
         const params = {
-          camera: this._Camera,
-          scene: this._Scene,
-          isMainPlayer: this._IsMainPlayer,
-          playerID: this._PlayerID,
-          gameID: this._gameID
+            camera: this._Camera,
+            scene: this._Scene,
+            isMainPlayer: this._IsMainPlayer,
+            playerID: this._PlayerID,
+            gameID: this._gameID
         }
         this._Controls = new BasicCharacterController(params);
     }

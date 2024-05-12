@@ -20,6 +20,7 @@ class BasicCharacterControllerProxy {
 
 class BasicCharacterController {
   constructor(params) {
+    this._listenToPlayer = this._listenToPlayer.bind(this);
     this._Init(params);
   }
 
@@ -48,12 +49,14 @@ class BasicCharacterController {
       });
 
       this._target = fbx;
+      console.log('ya se inicializó el target');
       this._params.scene.add(this._target);
 
       this._mixer = new THREE.AnimationMixer(this._target);
 
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
+        console.log('entró al set state idle');
         this._stateMachine.SetState('idle');
       };
 
@@ -80,7 +83,7 @@ class BasicCharacterController {
     if (!this._target) {
       return;
     }
-
+    console.log('pasó !this._target');
     this._stateMachine.Update(timeInSeconds, this._input);
 
     const velocity = this._velocity;
@@ -107,8 +110,6 @@ class BasicCharacterController {
       }
 
       if (this._input._keys.forward) {
-        console.log(acc.z);
-        console.log('tiempo:', timeInSeconds);
         velocity.z += acc.z * timeInSeconds;
       }
       if (this._input._keys.backward) {
@@ -158,13 +159,30 @@ class BasicCharacterController {
           y:controlObject.quaternion.y, 
           z:controlObject.quaternion.z
         }
-
       });
 
+      fb.child("Games").child(this._params.gameID).child("Players").child(this._params.playerID).child("keys").update({
+        forward:this._input._keys.forward,
+        backward:this._input._keys.backward,
+        shift: this._input._keys.shift
+      });
+
+    }else {
+      fb.child("Games").child(this._params.gameID).child("Players").child(this._params.playerID).on("value", (playerData) => this._listenToPlayer(playerData));
     }
 
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
+    }
+  }
+
+  _listenToPlayer(playerData){
+    if(playerData.val() && this._target){
+      this._target.position.copy( playerData.val().orientation.position );
+      this._target.quaternion.copy( playerData.val().orientation.rotation );
+      this._input._keys.shift = playerData.val().keys.shift
+      this._input._keys.shift = playerData.val().keys.forward
+      this._input._keys.shift = playerData.val().keys.backward
     }
   }
 };
@@ -183,10 +201,10 @@ class BasicCharacterControllerInput {
       shift: false,
     };
 
-    //if(this._params.isMainPlayer){
+    if(isMainPlayer){
       document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
       document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
-    //}
+    }
   }
 
   _onKeyDown(event) {
@@ -326,7 +344,7 @@ class WalkState extends State {
   Update(timeElapsed, input) {
     console.log('es main player:',this._parent._isMainPlayer);
 
-    if(this._parent._isMainPlayer){
+    //if(this._parent._isMainPlayer){
 
       if (input._keys.forward || input._keys.backward) {
         if (input._keys.shift) {
@@ -335,9 +353,9 @@ class WalkState extends State {
         return;
       }
 
-    }
+    //}
 
-    console.log(this._parent);
+    console.log('Parent:', this._parent);
     this._parent.SetState('idle');
 
   }
@@ -380,7 +398,7 @@ class RunState extends State {
 
   Update(timeElapsed, input) {
 
-    if(this._parent._isMainPlayer){
+    //if(this._parent._isMainPlayer){
 
       if (input._keys.forward || input._keys.backward) {
         if (!input._keys.shift) {
@@ -389,7 +407,7 @@ class RunState extends State {
         return;
       }
 
-    }
+    //}
     
     this._parent.SetState('idle');
   }
@@ -424,13 +442,13 @@ class IdleState extends State {
 
   Update(_, input) {
 
-    if(this._parent._isMainPlayer){
-
+    //if(this._parent._isMainPlayer){
+      console.log(this._parent);
       if (input._keys.forward || input._keys.backward) {
         this._parent.SetState('walk');
       }
 
-    }
+    //}
 
   }
 };
