@@ -64,7 +64,8 @@
                     row.id = gameId; 
                     row.addEventListener('click', function() {
                         console.log('Clicked row with ID:', row.id); 
-                        window.location.href = `game.html?id=${row.id}`;
+                        let isServer = false; 
+                        window.location.href = `game.html?id=${row.id}&isServer=${isServer}`;
                     });
                     const cellgameId = document.createElement('td');
                     cellgameId.textContent = gameId;

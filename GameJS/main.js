@@ -4,19 +4,22 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
 import { Player } from './player.js'; 
+import { Chick } from './chick.js';
+import { mix } from 'three/examples/jsm/nodes/Nodes.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
 let playerID;
 let otherPlayers = {};
-let chicks = {};
+let chicks = [];
 
 function initialize() {
 
     const urlParams = new URLSearchParams(window.location.search);
     gameID = urlParams.get('id');
+    isServer = urlParams.get('isServer');
 
     try {
       fb.child('Games').child(gameID).once('value', function(snapshot)  {
@@ -129,6 +132,7 @@ function loadScene(){
           console.log( 'An error happened:',error );
       }
   );
+  escenarioBB = new THREE.Sphere(new THREE.Vector3(0,0,0), 1);
 
   mixers = [];
   previousRAF = null;
@@ -139,14 +143,9 @@ function loadScene(){
 
   RAF();
 
-  chickGroup = new THREE.Group();
-  scene.add(chickGroup);
+  initChicken();
 
-  for (let i = 0; i < 2; i++) {
-    loadChick('../GameModels/', 'ChickWalk.glb');
-  }
-
-  escenarioBB = new THREE.Sphere(new THREE.Vector3(0,0,0), 1);
+  listenToChicken();
 
   //window.onbeforeunload = function() {
   //    fb.child("Players").child(playerID).remove();
@@ -158,24 +157,115 @@ function loadScene(){
 
   window.addEventListener('pagehide', function(){
     fb.child("Games").child(gameID).child("Players").child(playerID).remove();
-  })
+  });
+
+  fb.child("Games").child(gameID).child("Players").on("child_removed", function(childSnapshot) {
+    fb.child("Games").child(gameID).child("Players").once("value", function(snapshot) {
+        if (!snapshot.exists()) {
+          fb.child("Games").child(gameID).remove()
+            .then(function() {
+                console.log("Game removed because there are no players left.");
+            })
+            .catch(function(error) {
+                console.error("Error removing game:", error);
+            });
+          }
+      });
+  });
+
+} 
+
+function initChicken(){
+  chickGroup = new THREE.Group();
+  scene.add(chickGroup);
+  console.log(isServer);
+  if(isServer == 'true' || isServer == true){
+    console.log('SI ES SERVER LAPTM');
+    for (let i = 0; i < 2; i++) {
+
+      let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
+      console.log('Antes de instanciar chick');
+      let chick = new Chick(chickID, gameID, chickGroup, scene, null);  
+      //chick._Mesh.position.set(randomNumber(-9,14), 0, randomNumber(0,19));
+      setTimeout(() => {
+        //await new Promise(resolve => setTimeout(resolve, 3000));
+        chicks.push(chick);
+        mixers.push(chick._Mixer);
+        fb.child("Games").child(gameID).child("Chicken").child(chickID).child("position").set({
+          x: chick._Mesh.position.x,
+          y: chick._Mesh.position.y,
+          z: chick._Mesh.position.z
+        });
+        fb.child("Games").child(gameID).child("Chicken").child(chickID).child("active").set(chick._Active);
+        }, 10000);
+      
+    }
+  }else{
+    console.log('NO ES SERVER Q COÑO');
+    fb.child("Games").child(gameID).child("Chicken").once("value", function(snapshot) {
+        // Checar si Chicken tiene hijos 
+        if (snapshot.exists()) {
+            snapshot.forEach(function(childSnapshot) {
+              if(childSnapshot.child("active").val()){
+                const positionData = childSnapshot.val().position;
+                const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
+                let chick = new Chick(childSnapshot.val(), gameID, chickGroup, scene, position); 
+
+                setTimeout(() => {
+                  chicks.push(chick);
+                  mixers.push(chick._Mixer);
+                }, 10000);
+              }
+
+            });
+        } else {
+            console.log("No chickens found.");
+        }
+    }, function(error) {
+        console.error("Error fetching chickens:", error);
+    });
+  }
+}
+
+function listenToChicken(){
+  fb.child("Games").child(gameID).child("Chicken").on("value", function(snapshot) {
+      if (snapshot.exists()) {
+        snapshot.forEach(function(childSnapshot) {
+          
+          for(const chick in chicks) {
+            if(childSnapshot.key == chick._ChickID){
+              //remover el modelo si childSnapshot.child("active").val()
+              //actualizar la posición
+              if(isServer == 'false' || isServer == false){
+                chick._Mesh.position.copy(childSnapshot.val().position);
+              }
+            }
+          }
+
+        });
+      } else {
+          console.log("No chickens found.");
+      }
+  }, function(error) {
+      console.error("Error fetching chickens:", error);
+  });
 }
 
 function initMainPlayer(){
-    playerID = fb.child("Games").child(gameID).child("Players").push().key();
-    
-    fb.child("Games").child(gameID).child("Players").child(playerID).child("orientation").set({
-        position: {x:0, y:0, z:0},
-        rotation: {w:0, x:0, y:0, z:0}
-    });
-
-    fb.child("Games").child(gameID).child("Players").child(playerID).child("keys").set({
-      forward: false,
-      backward: false,
-      shift: false
+  playerID = fb.child("Games").child(gameID).child("Players").push().key();
+  
+  fb.child("Games").child(gameID).child("Players").child(playerID).child("orientation").set({
+    position: {x:0, y:0, z:0},
+    rotation: {w:0, x:0, y:0, z:0}
   });
 
-    player = new Player(playerID, gameID, true, scene, camera);
+  fb.child("Games").child(gameID).child("Players").child(playerID).child("keys").set({
+    forward: false,
+    backward: false,
+    shift: false
+  });
+
+  player = new Player(playerID, gameID, true, scene, camera);
 }
 
 function listenToPlayer(playerData){
@@ -190,10 +280,10 @@ function listenToOtherPlayers(){
         if(playerData.val()){
             if( playerID != playerData.key() && !otherPlayers[playerData.key()] ) {
 
-                console.log('Se detectó que se está agregando otro jugador');
+                //console.log('Se detectó que se está agregando otro jugador');
                 otherPlayers[playerData.key()] = new Player(playerData.key(), gameID, false, scene, camera);
                 setTimeout(() => {
-                  console.log('otherplayers:', otherPlayers[playerData.key()]._Controls._target); 
+                  //console.log('otherplayers:', otherPlayers[playerData.key()]._Controls._target); 
                   otherPlayers[playerData.key()]._Controls._target.position.copy( playerData.val().orientation.position );
                   otherPlayers[playerData.key()]._Controls._target.quaternion.copy( playerData.val().orientation.rotation );
                 }, 1000);
@@ -225,44 +315,7 @@ function loadAnimatedModelAndPlay(path, modelFile, animFile) {
         scene.add(fbx);
       });
 }
-function loadChick(path, modelFile) {
-  // generarle un ID al pollo
-  const loader = new GLTFLoader();
-  loader.setPath(path);
-  loader.load(modelFile, (gltf) => {
-    const model = gltf.scene;
-    model.scale.setScalar(1);
-    model.position.set(randomNumber(-9,14), 0, randomNumber(0,19), );
-    model.traverse(c => {
-      c.castShadow = true;
-    });
 
-    const mixer = new THREE.AnimationMixer(model);
-    mixers.push(mixer);
-    const animations = gltf.animations;
-    const actions = {};
-    animations.forEach((clip) => {
-      actions[clip.name] = mixer.clipAction(clip);
-    });
-    const animationName = 'Run';
-    if (actions[animationName]) {
-      actions[animationName].play();
-    }
-
-    scene.add(model);
-    chickGroup.add(model);
-
-    // bounding box 
-    const BB = new THREE.Box3();
-    BB.setFromObject(model);
-
-    chicks[model.uuid] = {
-      model: model,
-      BB: BB,
-    };
-  });
-
-}
 function loadModel() {
       const loader = new GLTFLoader();
       loader.load('./resources/thing.glb', (gltf) => {
@@ -309,14 +362,14 @@ function step(timeElapsed) {
     otherPlayer.Update(timeElapsedS);
   }
 
-  for (let uuid in chicks) {
-    const entry = chicks[uuid];
-    const model = entry.model;
-    const BB = entry.BB;
-  
-    const meshPosition = model.position.clone(); 
-    BB.translate(meshPosition.x, meshPosition.y, meshPosition.z);
-  }
+  //for (let uuid in chicks) {
+  //  const entry = chicks[uuid];
+  //  const model = entry.model;
+  //  const BB = entry.BB;
+  //
+  //  const meshPosition = model.position.clone(); 
+  //  BB.translate(meshPosition.x, meshPosition.y, meshPosition.z);
+  //}
 }
 function randomNumber(min, max) {
   return Math.random() * (max - min) + min;

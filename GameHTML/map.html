@@ -45,7 +45,7 @@
                         const primavera = document.getElementById('primaveraBtn');
                         const otoño = document.getElementById('otonoBtn');
                         const invierno = document.getElementById('inviernoBtn');
-
+                        let isServer = true;
                         primavera.addEventListener('click', function(event) {
                             event.preventDefault();
                             console.log('Primavera button clicked');
@@ -56,7 +56,7 @@
                                 difficulty: difficulty,
                                 map: 'Primavera'
                             });
-                            window.location.href = `game.html?id=${partidaID}`;
+                            window.location.href = `game.html?id=${partidaID}&isServer=${isServer}`;
                         });
 
                         otoño.addEventListener('click', function(event) {
@@ -70,7 +70,7 @@
                                 difficulty: difficulty,
                                 map: 'Otoño'
                             });
-                            window.location.href = `game.html?id=${partidaID}`;
+                            window.location.href = `game.html?id=${partidaID}&isServer=${isServer}`;
                         });
 
                         invierno.addEventListener('click', function(event) {
@@ -84,7 +84,7 @@
                                 difficulty: difficulty,
                                 map: 'Invierno'
                             });
-                            window.location.href = `game.html?id=${partidaID}`;
+                            window.location.href = `game.html?id=${partidaID}&isServer=${isServer}`;
                         });
 
 

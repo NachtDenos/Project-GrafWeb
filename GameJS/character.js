@@ -49,14 +49,14 @@ class BasicCharacterController {
       });
 
       this._target = fbx;
-      console.log('ya se inicializó el target');
+      //console.log('ya se inicializó el target');
       this._params.scene.add(this._target);
 
       this._mixer = new THREE.AnimationMixer(this._target);
 
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
-        console.log('entró al set state idle');
+        //console.log('entró al set state idle');
         this._stateMachine.SetState('idle');
       };
 
@@ -68,7 +68,7 @@ class BasicCharacterController {
           clip: clip,
           action: action,
         };
-        console.log('Pasó el onload animations');
+        //console.log('Pasó el onload animations');
       };
 
       const loader = new FBXLoader(this._manager);
@@ -83,7 +83,7 @@ class BasicCharacterController {
     if (!this._target) {
       return;
     }
-    console.log('pasó !this._target');
+    //console.log('pasó !this._target');
     this._stateMachine.Update(timeInSeconds, this._input);
 
     const velocity = this._velocity;
@@ -180,9 +180,9 @@ class BasicCharacterController {
     if(playerData.val() && this._target){
       this._target.position.copy( playerData.val().orientation.position );
       this._target.quaternion.copy( playerData.val().orientation.rotation );
-      this._input._keys.shift = playerData.val().keys.shift
-      this._input._keys.shift = playerData.val().keys.forward
-      this._input._keys.shift = playerData.val().keys.backward
+      this._input._keys.shift = playerData.val().keys.shift;
+      this._input._keys.shift = playerData.val().keys.forward;
+      this._input._keys.shift = playerData.val().keys.backward;
     }
   }
 };
@@ -342,7 +342,7 @@ class WalkState extends State {
   }
 
   Update(timeElapsed, input) {
-    console.log('es main player:',this._parent._isMainPlayer);
+    //console.log('es main player:',this._parent._isMainPlayer);
 
     //if(this._parent._isMainPlayer){
 
@@ -355,7 +355,7 @@ class WalkState extends State {
 
     //}
 
-    console.log('Parent:', this._parent);
+    //console.log('Parent:', this._parent);
     this._parent.SetState('idle');
 
   }
@@ -443,7 +443,7 @@ class IdleState extends State {
   Update(_, input) {
 
     //if(this._parent._isMainPlayer){
-      console.log(this._parent);
+      //console.log(this._parent);
       if (input._keys.forward || input._keys.backward) {
         this._parent.SetState('walk');
       }
