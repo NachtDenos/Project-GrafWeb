@@ -31,6 +31,7 @@ class BasicCharacterController {
     this._velocity = new THREE.Vector3(0, 0, 0);
 
     this._animations = {};
+    console.log(this._params.isMainPlayer);
     this._input = new BasicCharacterControllerInput(this._params.isMainPlayer);
 
     this._stateMachine = new CharacterFSM(
@@ -53,7 +54,6 @@ class BasicCharacterController {
       this._params.scene.add(this._target);
 
       this._mixer = new THREE.AnimationMixer(this._target);
-
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
         //console.log('entró al set state idle');
@@ -76,6 +76,10 @@ class BasicCharacterController {
       loader.load('Walking.fbx', (a) => { _OnLoad('walk', a); });
       loader.load('Running.fbx', (a) => { _OnLoad('run', a); });
       loader.load('Idle2.fbx', (a) => { _OnLoad('idle', a); });
+      console.log('isMainPlayer: ', this._params.isMainPlayer);
+      if(!this._params.isMainPlayer){
+        console.log('Mixer not main player: ', this._mixer);
+      }
     });
   }
 

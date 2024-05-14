@@ -15,9 +15,10 @@ class Chick {
         this._Mesh; 
         this._Mixer;
         this._Scene = scene; 
-        this._BB = new THREE.Box3();
+        this._BB;
         this._Active = true; 
         this._PositionRecieved = position; 
+        this._boxHelper;
         // create mesh and add mesh to scene 
         this._LoadAnimatedModel();
 
@@ -77,7 +78,18 @@ class Chick {
             this._Scene.add(this._Mesh);
 
             // bounding box 
-            this._BB.setFromObject(this._Mesh);
+            //this._BB.setFromObject(this._Mesh);
+            //const meshPosition = this._Mesh.position.clone(); 
+            //this._BB.translate(meshPosition.x, meshPosition.y, meshPosition.z);
+            setTimeout(() => {
+                
+                //this._Mesh.geometry.computeBoundingBox();
+                this._BB = new THREE.Box3();
+                this._BB.setFromObject(this._Mesh);
+                this._boxHelper = new THREE.Box3Helper( this._BB, 0xffff00 );
+                this._Scene.add(this._boxHelper);
+                console.log(this._BB);
+            }, 5000);
 
         });
     }

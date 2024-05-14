@@ -59,6 +59,7 @@
                 table.appendChild(thead);
 
                 for (const [gameId, playerCount] of Object.entries(gamePlayerCounts)) {
+                    console.log('Nueva fila');
                     const row = document.createElement('tr');
                     row.classList.add('table-row');
                     row.id = gameId; 
