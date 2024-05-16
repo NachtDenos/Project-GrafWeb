@@ -1,11 +1,15 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';   
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.module.js';
+import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
+
+// import * as THREE from 'three';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';   
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
+// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
 import { Player } from './player.js'; 
 import { Chick } from './chick.js';
-import { mix } from 'three/examples/jsm/nodes/Nodes.js';
+//import { mix } from 'three/examples/jsm/nodes/Nodes.js';
 
 let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB;
 
@@ -478,13 +482,13 @@ function checkCollisions() {
       }
     }
 
-    for (const casa of casasBB){
-      if(player._BB.intersectsBox(casa)){
-        player._Controls._input._keys.forward = false; 
-        player._Controls._velocity = new THREE.Vector3(0, 0, 0);
-        if(player._BarnNumber == )
-      }
-    }
+    // for (const casa of casasBB){
+    //   if(player._BB.intersectsBox(casa)){
+    //     player._Controls._input._keys.forward = false; 
+    //     player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+    //     if(player._BarnNumber == )
+    //   }
+    // }
 
   }
 

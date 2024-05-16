@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscar Partida - Kollector Chicken</title>
-    <link rel="stylesheet" href="../GameCSS/style.css">
+    <link rel="stylesheet" href="http://localhost/graficas/GameCSS/style.css">
     <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
 </head>
 <body>
     <div class="container-main">
         <div class="logo">
-            <img src="../GameImages/Logo.png">
+            <img src="http://localhost/graficas/GameImages/Logo.png">
         </div>
         <div class="leaderboard-image">
-            <img src="../GameImages/Busca partida/Busca.png">
+            <img src="http://localhost/graficas/GameImages/Busca partida/Busca.png">
             <div id="table-container" style="z-index: 10;">
             </div>
         </div>
         <button class="back-button" onclick="window.history.back()">
-            <img src="../GameImages/regresar.png" alt="Back">
+            <img src="http://localhost/graficas/GameImages/regresar.png" alt="Back">
         </button>
         <script>
             let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");

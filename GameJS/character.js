@@ -1,8 +1,5 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';   
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'; 
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';  
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.module.js';
+import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 
 export { BasicCharacterController };
 
