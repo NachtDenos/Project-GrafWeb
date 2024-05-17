@@ -45,9 +45,19 @@ class Chick {
     _LoadAnimatedModel() {
         console.log('Llegó a load animated model chick');
         console.log('Scene: ', this._Scene);
+        let modelo; 
+        if(this._Type == 'bad'){
+            modelo = 'ChickBad.glb';
+        }else if(this._Type == 'bad2'){
+            console.log('modo dificil');
+            modelo = 'ChickBadDificult.glb';
+        }else{
+            modelo = 'ChickWalk.glb';
+        }
+
         const loader = new GLTFLoader();
         loader.setPath('../GameModels/');
-        loader.load('ChickWalk.glb', (gltf) => {
+        loader.load(modelo, (gltf) => {
             this._Mesh = gltf.scene;
             this._Mesh.scale.setScalar(1);
             console.log(this._PositionRecieved);
@@ -76,10 +86,6 @@ class Chick {
 
             this._Scene.add(this._Mesh);
 
-            // bounding box 
-            //this._BB.setFromObject(this._Mesh);
-            //const meshPosition = this._Mesh.position.clone(); 
-            //this._BB.translate(meshPosition.x, meshPosition.y, meshPosition.z);
             setTimeout(() => {
                 
                 //this._Mesh.geometry.computeBoundingBox();

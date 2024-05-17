@@ -7,7 +7,7 @@ import { Player } from './player.js';
 import { Chick } from './chick.js';
 import { mix } from 'three/examples/jsm/nodes/Nodes.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
@@ -22,8 +22,10 @@ let pantallaWaiting = document.getElementById('waitingRoom');
 let pantallaPause = document.getElementById('pause');
 let timerGUI = document.getElementById('timerGUI');
 let waitingText = document.getElementById('waitingRoomText');
+
 let isEscPressed = false;
 let isEkeyPressed = false; 
+let collidedChickBad = false; 
 let gameStarted = false;
 
 function initialize() {
@@ -43,7 +45,14 @@ function initialize() {
             mode = gameData.Configuration.mode;
             difficulty = gameData.Configuration.difficulty;
             map = gameData.Configuration.map;
-            if(gameData.Configuration.mode == 'Multijugador'){
+            if(difficulty == 'Facil'){
+              damage = 10;
+              chickVelocity = 1.0;
+            }else{
+              damage = 20; 
+              chickVelocity = 2.0;
+            }
+            if(mode == 'Multijugador'){
               fb.child("Games").child(gameID).child("Players").on("value", checkStartGame);
             }else {
               timerWaitroom = 5;
@@ -363,7 +372,15 @@ function initChicken(){
     for (let i = 0; i < 2; i++) {
       let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
       console.log('Antes de instanciar chick');
-      let chick = new Chick(chickID, gameID, chickGroup, scene, null, 'bad');  
+      console.log('Dificulty:', difficulty);
+      let modelType;
+      if(difficulty == 'Facil'){
+        modelType = 'bad';
+      }else{
+        modelType = 'bad2';
+      }
+      console.log('modelType:', modelType);
+      let chick = new Chick(chickID, gameID, chickGroup, scene, null, modelType);  
       setTimeout(() => {
         console.log(chick._BB);
         mixers.push(chick._Mixer);
@@ -449,16 +466,18 @@ function listenToChicken(){
     console.log(snapshot.key());
     const deletedChickID = snapshot.key();
     console.log(chicks);
-    for(const chick of chicks){
-      console.log(chick);
-      console.log(chick._ChickID, ' = ', deletedChickID);
-      if(chick._ChickID == deletedChickID){
-        console.log('Se encontró el pollo');
-        scene.remove(chick._Mesh);
-        scene.remove(chick._boxHelper);
-        chicks.pop(chick);
+    setTimeout(()=>{
+      for(const chick of chicks){
+        console.log(chick);
+        console.log(chick._ChickID, ' = ', deletedChickID);
+        if(chick._ChickID == deletedChickID){
+          console.log('Se encontró el pollo');
+          scene.remove(chick._Mesh);
+          scene.remove(chick._boxHelper);
+          chicks.pop(chick);
+        }
       }
-    }
+    },1000);
   });
   
 }
@@ -634,6 +653,33 @@ function checkCollisions() {
         }
       }
 
+      //const healthBar = document.getElementById('healthBar');
+      for (const chick of chicksBad) {
+        if(chick._BB && chick._Active){
+          if (player._BB.intersectsBox(chick._BB)){
+            console.log('mi jugador colisionó con un pollo malo');
+            player._Controls._input._keys.forward = false; 
+            player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+            //bajar la vida
+            if(!collidedChickBad){
+              collidedChickBad = true; 
+              player._Health -= damage;
+              let currentWidth = parseFloat(document.getElementById('healthBar').style.width); // Parse the current width as a number
+              //console.log(healthBar);
+              console.log(currentWidth);
+              let newWidth = currentWidth - 12.8; // Subtract 12.8 from the current width
+              console.log(newWidth);
+              document.getElementById('healthBar').style.width = newWidth + '%';
+              console.log('health: ', player._Health);
+            }else{
+              setTimeout(()=>{
+                collidedChickBad = false; 
+              },5000);
+            }
+          }
+        }
+      }
+
     for (const [index, casa] of casasBB.entries()) {
       if (player._BB.intersectsBox(casa)) {
         player._Controls._input._keys.forward = false; 
@@ -650,8 +696,12 @@ function checkCollisions() {
                   scene.remove(chick._Mesh);
                   scene.remove(chick._boxHelper);
                   console.log('antes: ', chicks);
+                  for(const chick2 of chicks)
+                    console.log(chick2._ChickID);
                   chicks.pop(chick);
                   console.log('despues: ', chicks);
+                  for(const chick3 of chicks)
+                    console.log(chick3._ChickID);
                   ChickGrabbed = null;
                   player._Points += 1;  
                   document.getElementById('scoreGUI').innerHTML = player._Points;

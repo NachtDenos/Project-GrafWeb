@@ -20,6 +20,7 @@ class Player {
         this._boxHelper;
         this._BarnNumber = barnNumber;
         this._Points = 0; 
+        this._Health = 50;
         // create mesh and add mesh to scene 
         this._LoadAnimatedModel();
 
@@ -61,7 +62,6 @@ class Player {
                 console.log('PORQQUE CHINGADOS ENTRA AQUI SI ES FALSO Q VERGAS');
                 this._BB = new THREE.Box3();
                 this._Mesh = this._Controls._target;
-                //console.log('Mesh: ', this._Mesh);
                 this._BB.setFromObject(this._Controls._target);
                 this._boxHelper = new THREE.Box3Helper( this._BB, 0xffff00 );
                 this._boxHelper.updateMatrixWorld(true);
@@ -72,13 +72,8 @@ class Player {
 
     Update(timeInSeconds) {
         this._Controls.Update(timeInSeconds);
-        //setTimeout(() => {
             if(this._BB && this._Mesh && (this._IsMainPlayer == true)){
-                //console.log('update de bb: ', this._PlayerID);
-                const fbxPosition = this._Mesh.position.clone();
-                const fbxRotation = this._Mesh.quaternion.clone();
                 this._BB.setFromObject(this._Mesh);
             }
-        //}, 8000);
     }
 }

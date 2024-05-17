@@ -1,41 +1,131 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const soundSlider = document.getElementById("sound-slider");
-    const soundHandle = soundSlider.querySelector(".handle");
-    const musicSlider = document.getElementById("music-slider");
-    const musicHandle = musicSlider.querySelector(".handle");
+    let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
-    // Event Listeners for Dragging
-    soundHandle.addEventListener("mousedown", startDrag);
-    musicHandle.addEventListener("mousedown", startDrag);
+    const sliderEffects = document.getElementById('sliderEffects');
+    const knobEffects = document.getElementById('knobEffects');
+    const sliderMusic = document.getElementById('sliderMusic');
+    const knobMusic = document.getElementById('knobMusic');
 
-    // Function to Start Dragging
-    function startDrag(event) {
-        const handle = event.target;
-        const slider = handle.parentElement;
+    let isDraggingEffects = false;
+    let knobOffsetEffects = 0;
+    let isDraggingMusic = false;
+    let knobOffsetMusic = 0;
 
-        const sliderRect = slider.getBoundingClientRect();
-        const handleRect = handle.getBoundingClientRect();
+    let valueEffect = 100; 
+    let valueMusic = 100; 
 
-        const offsetX = event.clientX - handleRect.left;
-
-        document.addEventListener("mousemove", dragHandle);
-        document.addEventListener("mouseup", stopDrag);
-
-        // Function to Handle Dragging
-        function dragHandle(event) {
-            let newX = event.clientX - sliderRect.left - offsetX;
-            if (newX < 0) {
-                newX = 0;
-            } else if (newX > sliderRect.width - handleRect.width) {
-                newX = sliderRect.width - handleRect.width;
-            }
-            handle.style.left = newX + "px";
+    fb.child("General").child("Configuration").once("value", function(snapshot) {
+        if (snapshot.exists()) {
+            console.log('snapshot exists');
+            console.log(snapshot);
+            valueEffect = snapshot.val().effects;
+            valueMusic = snapshot.val().music;
+            console.log(valueEffect);
+            console.log(valueMusic);
+            knobEffects.style.left = `${(valueEffect / 100) * (sliderEffects.offsetWidth - knobEffects.offsetWidth)}px`;
+            knobMusic.style.left = `${(valueMusic / 100) * (sliderMusic.offsetWidth - knobMusic.offsetWidth)}px`;
+        } else {
+            console.log("No data found.");
         }
+    }, function(error) {
+        console.error("Error fetching data:", error);
+    });
 
-        // Function to Stop Dragging
-        function stopDrag() {
-            document.removeEventListener("mousemove", dragHandle);
-            document.removeEventListener("mouseup", stopDrag);
+    function moveKnobEffects(event) {
+        if (isDraggingEffects) {
+            let posX = event.clientX || event.touches[0].clientX;
+            let newPosition = posX - sliderEffects.offsetLeft - knobOffsetEffects;
+            let maxPosition = sliderEffects.offsetWidth - knobEffects.offsetWidth+29;
+
+            console.log('maxPosition:',maxPosition);
+            console.log('newPosition:',newPosition);
+            // Restrict knob movement within sliderEffects bounds
+            if (newPosition >= 0 && newPosition <= maxPosition) {
+                knobEffects.style.left = newPosition + 'px';
+
+                let percentage = (newPosition / maxPosition) * 100;
+                valueEffect = Math.round(percentage);
+                if(valueEffect > 100)
+                valueEffect = 100;
+                if(valueEffect < 0)
+                valueEffect = 0;
+                console.log('Effects value: ',valueEffect);
+                fb.child("General").child("Configuration").update({
+                    effects: valueEffect
+                });
+            }
         }
     }
+
+    function moveKnobMusic(event) {
+        if (isDraggingMusic) {
+            let posX = event.clientX || event.touches[0].clientX;
+            let newPosition = posX - sliderMusic.offsetLeft - knobOffsetMusic;
+            let maxPosition = sliderMusic.offsetWidth - knobMusic.offsetWidth+29;
+            console.log(maxPosition);
+            console.log(newPosition);
+            // Restrict knob movement within sliderEffects bounds
+            if (newPosition >= 0 && newPosition <= maxPosition) {
+                knobMusic.style.left = newPosition + 'px';
+
+                let percentage = (newPosition / maxPosition) * 100;
+                valueMusic = Math.round(percentage);
+                if(valueMusic > 100)
+                    valueMusic = 100;
+                if(valueMusic < 0)
+                    valueMusic = 0;
+                console.log('Music value: ',valueMusic);
+                fb.child("General").child("Configuration").update({
+                    music: valueMusic
+                });
+            }
+        }
+    }
+
+    knobEffects.addEventListener('mousedown', (event) => {
+        isDraggingEffects = true;
+        knobOffsetEffects = event.clientX - knobEffects.getBoundingClientRect().left;
+    });
+
+    sliderEffects.addEventListener('mousemove', moveKnobEffects);
+
+    knobEffects.addEventListener('touchstart', (event) => {
+        isDraggingEffects = true;
+        knobOffsetEffects = event.touches[0].clientX - knobEffects.getBoundingClientRect().left;
+    });
+
+    sliderEffects.addEventListener('touchmove', (event) => {
+        moveKnobEffects(event.touches[0]);
+        event.preventDefault(); // Prevent scrolling on touch devices
+    });
+
+
+    knobMusic.addEventListener('mousedown', (event) => {
+        isDraggingMusic = true;
+        knobOffsetMusic = event.clientX - knobMusic.getBoundingClientRect().left;
+    });
+
+    sliderMusic.addEventListener('mousemove', moveKnobMusic);
+    
+    knobMusic.addEventListener('touchstart', (event) => {
+        isDraggingMusic = true;
+        knobOffsetMusic = event.touches[0].clientX - knobMusic.getBoundingClientRect().left;
+    });
+
+    sliderMusic.addEventListener('touchmove', (event) => {
+        moveKnobMusic(event.touches[0]);
+        event.preventDefault(); // Prevent scrolling on touch devices
+    });
+
+
+    window.addEventListener('mouseup', () => {
+        isDraggingEffects = false;
+        isDraggingMusic = false;
+    });
+    
+    window.addEventListener('touchend', () => {
+        isDraggingEffects = false;
+        isDraggingMusic = false;
+    });
+    
 });

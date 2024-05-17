@@ -65,6 +65,7 @@ button:hover img{
     background-color: transparent;
     border: none;
     padding: 0;
+    margin-top: 3rem;
 }
 
 .buttons-settings img {
@@ -123,13 +124,96 @@ button:hover img{
 .game-GUI {
     position: absolute;
     z-index: 2125;
-    top: 15px;
-    left: 15%;
-    max-width: 41%;
-    max-height: 6%;
-    display: flex; 
-    flex-direction: row;/* Use Flexbox to arrange items horizontally */
-    /*align-items: center; Align items vertically in the center */
+    top: -1.2rem;
+    left: 13%;
+    max-width: 90%;
+    height: 8rem; /* Set a max-height for uniformity */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Distribute items along the row */
+}
+
+#score {
+    position: relative; 
+    height:100%; 
+    width: 100%; 
+    display: inline-block; /*flex*/
+}
+
+#time {
+    position: relative; 
+    height:100%; 
+    width: fit-content; 
+    display: inline-block; /*flex*/
+}
+
+#scoreBackground {
+    height: 100%;
+    width: auto;
+    margin-top:5px;
+}
+#timerBackground {
+    height: 100%;
+    width: auto;
+}
+
+#scoreGUI {
+    position: absolute;
+    z-index: 2126;
+    top: 38%;
+    left: 45%;
+    margin-top: 0; margin-right:1rem; padding-right: 1rem;
+}
+#health{
+    position: relative; 
+    height:100%; 
+    width: auto; 
+    display: inline-block;
+}
+
+#healthBar{
+    background-color: brown;
+    width: 64%;
+    height: 18%;
+    position:relative;
+    top: -61%;
+    left: 27%;
+}
+
+#healthBarBackground {
+    height: 100%;
+    width: auto;
+}
+
+#scoreChicken {
+    height:5rem;
+    width: 5rem;
+    position: relative;
+    top: 40%;
+    left: 90%;
+    z-index: 2126; 
+}
+
+#timerGUI{
+    margin-top: 0; 
+    position:relative;
+    top: -65%;
+    left: 50%;
+}
+
+#home{
+    display: inline-block;
+    height:100%;
+    width:auto;
+    position: relative; 
+}
+
+#iconHome{
+    width:auto; 
+    height:40%;
+    margin-top: 3rem;
+    /*margin-top:4rem;
+    margin-bottom:4rem;*/
 }
 
 .game-GUI img {
@@ -187,7 +271,6 @@ canvas {
     position: relative;
     text-align: center;
 }
-
 
 .buttons-row {
     position: absolute; 
@@ -252,4 +335,24 @@ canvas {
     z-index: 2150; 
     width: 100%;
     height: 100%;
+}
+
+.slider {
+    width: 30%;
+    height: 20px;
+    background-color: #ddd;
+    position: relative;
+    cursor: pointer;
+    margin-left: 3rem;
+}
+
+.slider .knob {
+    width: 20px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateX(-50%);
 }
