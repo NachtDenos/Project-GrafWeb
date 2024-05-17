@@ -5,11 +5,11 @@ export { Chick };
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
 class Chick {
-    constructor(chickID, gameId, chickGroup, scene, position){
-        this._Init(chickID, gameId, chickGroup, scene, position);
+    constructor(chickID, gameId, chickGroup, scene, position, type){
+        this._Init(chickID, gameId, chickGroup, scene, position, type);
     }
 
-    _Init(chickID, gameId, chickGroup, scene, position) {
+    _Init(chickID, gameId, chickGroup, scene, position, type) {
         this._ChickID = chickID; 
         this._gameID = gameId;
         this._Mesh; 
@@ -19,6 +19,7 @@ class Chick {
         this._Active = true; 
         this._PositionRecieved = position; 
         this._boxHelper;
+        this._Type = type;
         // create mesh and add mesh to scene 
         this._LoadAnimatedModel();
 
@@ -52,8 +53,6 @@ class Chick {
             console.log(this._PositionRecieved);
             if(this._PositionRecieved){
                 console.log('antes de establecer la posición;');
-                //this._Mesh.position.set(this._PositionRecieved);
-
                 this._Mesh.position.set(this._PositionRecieved.x, this._PositionRecieved.y, this._PositionRecieved.z);
             }else{
                 this._Mesh.position.set(this.randomNumber(-9,14), 0, this.randomNumber(0,19));

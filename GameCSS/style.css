@@ -100,11 +100,10 @@ button:hover img{
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 85%!important; /*Aqui para hacer mas grande la pantalla de juego*/
+    width: 75%!important; /*Aqui para hacer mas grande la pantalla de juego*/
     margin: 0 auto;
     position:relative;
-    height: 85%!important;
-    margin-top: 10px;
+    height: 75%!important;
 }
 
 .game-image #frame {
@@ -121,6 +120,21 @@ button:hover img{
     max-width: 12%;
 }
 
+.game-GUI {
+    position: absolute;
+    z-index: 2125;
+    top: 15px;
+    left: 15%;
+    max-width: 41%;
+    max-height: 6%;
+    display: flex; 
+    flex-direction: row;/* Use Flexbox to arrange items horizontally */
+    /*align-items: center; Align items vertically in the center */
+}
+
+.game-GUI img {
+    max-height: 100%;
+}
 canvas {
     position: absolute;
     z-index: 2100;
@@ -197,4 +211,45 @@ canvas {
     width: 100%;
     height: auto;
     max-width: 300px;
+}
+
+#blur {
+    position: absolute;
+    opacity: 1;  /* para que no se vea cuando no esta activo el pop up*/
+    transition: 200ms ease-in-out;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0,0,0,0.2);  
+    z-index: 2150;
+    pointer-events: none;
+    backdrop-filter: blur(5px);
+    top:-10px;
+    left: -1px;
+}
+
+#blur.active {
+    pointer-events: all;
+}
+
+#pause h1 {
+    position: absolute;
+    z-index: 2155; 
+    top:40%; 
+    left: 40%;
+    font-size: 60px;
+}
+
+#waitingRoom h1 {
+    position: absolute;
+    z-index: 2155; 
+    top:33%; 
+    left: 48%;
+    font-size: 40px;
+}
+
+#waitingRoom img {
+    position: absolute;
+    z-index: 2150; 
+    width: 100%;
+    height: 100%;
 }

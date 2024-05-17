@@ -35,7 +35,9 @@
                     // se filtran solo en los que son multijugador
                     if (configurationSnapshot.exists() && configurationSnapshot.child("mode").val() === 'Multijugador') {
                         const playerCount = child.child("Players").numChildren();
-                        gamePlayerCounts[gameId] = playerCount;
+                        gamePlayerCounts[gameId] = {
+                            gameName: configurationSnapshot.child("nickname").val(),
+                            playerCount: playerCount};
                     }
                 });
 
@@ -49,33 +51,40 @@
                 const tbody = document.createElement('tbody');
 
                 const headerRow = document.createElement('tr');
-                const headergameId = document.createElement('th');
-                headergameId.textContent = 'GameID';
+                const headergameName = document.createElement('th');
+                headergameName.textContent = 'Game Nickname';
                 const headerPlayerCount = document.createElement('th');
                 headerPlayerCount.textContent = 'Current Players';
-                headerRow.appendChild(headergameId);
+                headerRow.appendChild(headergameName);
                 headerRow.appendChild(headerPlayerCount);
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
 
-                for (const [gameId, playerCount] of Object.entries(gamePlayerCounts)) {
+                for (const [gameId, gameData] of Object.entries(gamePlayerCounts)) {
                     console.log('Nueva fila');
                     const row = document.createElement('tr');
                     row.classList.add('table-row');
                     row.id = gameId; 
-                    row.addEventListener('click', function() {
-                        console.log('Clicked row with ID:', row.id); 
-                        let isServer = false; 
-                        window.location.href = `game.html?id=${row.id}&isServer=${isServer}`;
-                    });
-                    const cellgameId = document.createElement('td');
-                    cellgameId.textContent = gameId;
+                    const { gameName, playerCount } = gameData;
+                    const cellgameName = document.createElement('td');
+                    cellgameName.textContent = gameName; 
                     const cellPlayerCount = document.createElement('td');
-                    cellPlayerCount.textContent = playerCount;
+                    cellPlayerCount.textContent = playerCount+'/4';
                     cellPlayerCount.classList.add('cell-PlayerCount');
-                    row.appendChild(cellgameId);
+                    row.appendChild(cellgameName);
                     row.appendChild(cellPlayerCount);
                     tbody.appendChild(row);
+
+
+                    row.addEventListener('click', function() {
+                        if(playerCount > 3){
+                            alert('La sala está llena');
+                        }else{
+                            console.log('Clicked row with ID:', row.id); 
+                            let isServer = false; 
+                            window.location.href = `game.html?id=${row.id}&isServer=${isServer}`;
+                        }
+                    });
                 }
 
                 table.appendChild(tbody);

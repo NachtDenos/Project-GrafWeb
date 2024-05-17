@@ -10,12 +10,26 @@
 <body>
     <div class="container-main">
         <div class="logo">
-            <img src="../GameImages/Logo.png">
         </div>
         <div class="game-image">
             <img id="icon" src="../GameImages/Pantalla juego/juegoIcon.png">
             <img id="frame" src="../GameImages/Pantalla juego/juego3.png">
-            <div id="game-container"></div>
+            <div class="game-GUI">
+                <img style="max-width: 14%;" src="../GameImages/GUI/food.png">
+                <h1 id="scoreGUI" style="margin-top: 0; margin-right:1rem; padding-right: 1rem;">0</h1>
+                <h1 id="timerGUI" style="margin-top: 0; padding-left: 15rem; padding-right: 15rem; color:burlywood;">60</h1>
+                <img id="iconHome" style="max-width: 13%; justify-self: flex-end;" src="../GameImages/GUI/homeGray.png">
+            </div>
+            <div id="game-container">
+                <div id="waitingRoom">
+                    <h1 id="waitingRoomText" ></h1>
+                    <img src="../GameImages/Pantalla juego/pEspera.gif">
+                </div>
+                <div id="pause" >
+                    <h1>PAUSA</h1>
+                    <div id="blur"></div>
+                </div>
+            </div> 
             <script src="../GameJS/main.js" type="module">
             </script>
         </div>

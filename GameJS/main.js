@@ -7,16 +7,29 @@ import { Player } from './player.js';
 import { Chick } from './chick.js';
 import { mix } from 'three/examples/jsm/nodes/Nodes.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
 let playerID;
 let otherPlayers = {};
 let chicks = [];
+let chicksBad = [];
 let casasBB = [];
+let ChickGrabbed = null; 
+
+let pantallaWaiting = document.getElementById('waitingRoom');
+let pantallaPause = document.getElementById('pause');
+let timerGUI = document.getElementById('timerGUI');
+let waitingText = document.getElementById('waitingRoomText');
+let isEscPressed = false;
+let isEkeyPressed = false; 
+let gameStarted = false;
 
 function initialize() {
+  pantallaWaiting.style.display = 'block'; 
+  pantallaPause.style.display = 'none'; 
+
   // -------------------------- CARGAR DATOS DEL JUEGO -------------------------- //
     const urlParams = new URLSearchParams(window.location.search);
     gameID = urlParams.get('id');
@@ -30,8 +43,19 @@ function initialize() {
             mode = gameData.Configuration.mode;
             difficulty = gameData.Configuration.difficulty;
             map = gameData.Configuration.map;
+            if(gameData.Configuration.mode == 'Multijugador'){
+              fb.child("Games").child(gameID).child("Players").on("value", checkStartGame);
+            }else {
+              timerWaitroom = 5;
+              waitingRoomText.innerText = timerWaitroom;
+              setInterval(updateTimerWaitroom, 1000);
+              setTimeout(()=>{
+                gameStarted = true; 
+                pantallaWaiting.style.display = 'none'; 
+                startTimer();
+              }, 7000);
+            }
             loadScene();
-
         } else {
             console.log('game not found');
             // reedireccionar a una pantalla de 'No se encontró la game'; 
@@ -42,6 +66,48 @@ function initialize() {
       console.error('Error in Firebase operation:', error);
       window.location.href = 'index.html';
     }
+}
+function checkStartGame(snapshot){
+  GamePlayers = snapshot.numChildren();
+  ('Jugadores en el juego: ', GamePlayers);
+  waitingRoomText.innerText = GamePlayers + '/4';
+  if(GamePlayers == 2){
+    timerWaitroom = 5;
+    waitingRoomText.innerText = timerWaitroom;
+    setInterval(updateTimerWaitroom, 1000);
+    setTimeout(()=>{
+      gameStarted = true; 
+      pantallaWaiting.style.display = 'none'; 
+      startTimer();
+      fb.child("Games").child(gameID).child("Players").off("value", checkStartGame);
+    }, 10000);
+  }else {
+    if(player){
+      player._Controls._input._keys.forward = false; 
+      player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+    }
+  }
+}
+
+function updateTimerWaitroom(){
+  if(timerWaitroom > 0){
+    timerWaitroom --;
+    console.log(timerWaitroom);
+    waitingRoomText.innerText = timerWaitroom;
+  }
+
+}
+
+function startTimer(){
+  timer = 60;
+
+  if(gameStarted){
+    let timerInterval = setInterval(updateTimer, 1000);
+
+    setTimeout(() => {
+      clearInterval(timerInterval); // Stop the timer interval
+    }, 60000);
+  }
 }
 
 function loadScene(){
@@ -218,6 +284,8 @@ function loadScene(){
 
   RAF();
 
+  window.addEventListener('keydown', keyEvents);
+
   window.addEventListener('beforeunload', function (event) {
     fb.child("Games").child(gameID).child("Players").child(playerID).remove();
   });
@@ -242,33 +310,78 @@ function loadScene(){
 
 } 
 
+function keyEvents(event) {
+  if (event.key === 'Escape') {
+    if (!isEscPressed) {
+      console.log('First time Esc key pressed');
+      isEscPressed = true;
+      pantallaPause.style.display = 'block';
+    } else {
+      console.log('Esc key pressed again');
+      isEscPressed = false;
+      pantallaPause.style.display = 'none';
+    }
+  }
+
+  if (event.key === 'E' || event.key === 'e') {
+    if (!isEkeyPressed) {
+      isEkeyPressed = true;
+      console.log('se presionó la E');
+    } else {
+      isEkeyPressed = false;
+    }
+  }
+}
+
+
 function initChicken(){
   chickGroup = new THREE.Group();
   scene.add(chickGroup);
   console.log(isServer);
   if(isServer == 'true' || isServer == true){
-    console.log('SI ES SERVER LAPTM');
     for (let i = 0; i < 2; i++) {
-
       let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
       console.log('Antes de instanciar chick');
-      let chick = new Chick(chickID, gameID, chickGroup, scene, null);  
-      //chick._Mesh.position.set(randomNumber(-9,14), 0, randomNumber(0,19));
+      let chick = new Chick(chickID, gameID, chickGroup, scene, null, 'good');  
       setTimeout(() => {
         console.log(chick._BB);
         mixers.push(chick._Mixer);
         chicks.push(chick);
-        fb.child("Games").child(gameID).child("Chicken").child(chickID).child("position").set({
-          x: chick._Mesh.position.x,
-          y: chick._Mesh.position.y,
-          z: chick._Mesh.position.z
+        fb.child("Games").child(gameID).child("Chicken").child(chickID).set({
+          active: true,
+          type: 'good',
+          position:{
+            x: chick._Mesh.position.x,
+            y: chick._Mesh.position.y,
+            z: chick._Mesh.position.z
+          }
         });
-        fb.child("Games").child(gameID).child("Chicken").child(chickID).child("active").set(chick._Active);
+        console.log('chick._Active: ', chick._Active);
+        }, 10000);
+      
+    }
+    for (let i = 0; i < 2; i++) {
+      let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
+      console.log('Antes de instanciar chick');
+      let chick = new Chick(chickID, gameID, chickGroup, scene, null, 'bad');  
+      setTimeout(() => {
+        console.log(chick._BB);
+        mixers.push(chick._Mixer);
+        chicksBad.push(chick);
+        fb.child("Games").child(gameID).child("Chicken").child(chickID).set({
+          active: true,
+          type: 'bad',
+          position:{
+            x: chick._Mesh.position.x,
+            y: chick._Mesh.position.y,
+            z: chick._Mesh.position.z
+          }
+        });
+        console.log('chick._Active: ', chick._Active);
         }, 10000);
       
     }
   }else{
-    console.log('NO ES SERVER Q COÑO');
     fb.child("Games").child(gameID).child("Chicken").once("value", function(snapshot) {
         // Checar si Chicken tiene hijos 
         if (snapshot.exists()) {
@@ -277,11 +390,15 @@ function initChicken(){
                 const positionData = childSnapshot.val().position;
                 const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
                 console.log('childSnapshot.val(): ', childSnapshot.key());
-                let chick = new Chick(childSnapshot.key(), gameID, chickGroup, scene, position); 
+                let chick = new Chick(childSnapshot.key(), gameID, chickGroup, scene, position, childSnapshot.val().type); 
 
                 setTimeout(() => {
                   //mixers.push(chick._Mixer);
-                  chicks.push(chick);
+                  if(childSnapshot.val().type == 'good'){
+                    chicks.push(chick);
+                  }else{
+                    chicksBad.push(chick);
+                  }
                 }, 10000);
               }
 
@@ -297,15 +414,25 @@ function initChicken(){
 
 function listenToChicken(){
   fb.child("Games").child(gameID).child("Chicken").on("value", function(snapshot) {
+      console.log('evento change chick value');
       if (snapshot.exists()) {
+        console.log('snapshot exists');
+        console.log('snapshot: ', snapshot.exists());
         snapshot.forEach(function(childSnapshot) {
-          
-          for(const chick in chicks) {
+          console.log('childSnapshot: ', childSnapshot);
+          for(const chick of chicks) {
+            console.log(childSnapshot.key(), ' = ', chick._ChickID);
             if(childSnapshot.key() == chick._ChickID){
-              //remover el modelo si childSnapshot.child("active").val()
-              //actualizar la posición
               if(isServer == 'false' || isServer == false){
                 chick._Mesh.position.copy(childSnapshot.val().position);
+              }
+              console.log('childSnapshot.val().active: ', childSnapshot.val().active);
+              chick._Active = childSnapshot.val().active;
+              console.log('chick._Active');
+              if(chick._Active){
+                chick._Mesh.visible = true; 
+              }else{
+                chick._Mesh.visible = false; 
               }
             }
           }
@@ -321,8 +448,10 @@ function listenToChicken(){
     console.log('Entró al evento de borrar pollos');
     console.log(snapshot.key());
     const deletedChickID = snapshot.key();
-    
+    console.log(chicks);
     for(const chick of chicks){
+      console.log(chick);
+      console.log(chick._ChickID, ' = ', deletedChickID);
       if(chick._ChickID == deletedChickID){
         console.log('Se encontró el pollo');
         scene.remove(chick._Mesh);
@@ -355,10 +484,27 @@ function initMainPlayer(){
       backward: false,
       shift: false
     });
+    const barnNum = numPrevPlayers+1;
+    fb.child("Games").child(gameID).child("Players").child(playerID).child("barnNumber").set(barnNum);
+    player = new Player(playerID, gameID, true, scene, camera, barnNum );
 
-    fb.child("Games").child(gameID).child("Players").child(playerID).child("barnNumber").set(numPrevPlayers+1);
+    setTimeout(() => {
+      let quaternion = new THREE.Quaternion();
+      if(barnNum == 1){
+        player._Controls._target.position.copy(new THREE.Vector3(8,0,0.5));
+      }else if (barnNum == 2) {
+        player._Controls._target.position.copy(new THREE.Vector3(-8,0,0.5));
+      }else if (barnNum == 3) {
+        player._Controls._target.position.copy(new THREE.Vector3(-13,0,9.5));
+        quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), 1.5708);
+        player._Controls._target.quaternion.copy(quaternion);
+      }else if(barnNum == 4) {
+        player._Controls._target.position.copy(new THREE.Vector3(13,0,9));
+        quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), -1.5708);
+        player._Controls._target.quaternion.copy(quaternion);
+      }
+    }, 2000);
 
-    player = new Player(playerID, gameID, true, scene, camera, numPrevPlayers+1);
   }, 1000);
 }
 
@@ -451,44 +597,77 @@ function step(timeElapsed) {
     otherPlayers[playerID].Update(timeElapsedS);
   }
 
-  //for (const chick of chicks) {
-  //  chick.Update();
-  //}
-
   checkCollisions();
 }
+
+function updateTimer(){
+  if (timer > 0) {
+    timer --;
+    timerGUI.innerText = timer; 
+  }
+}
+
+
 function randomNumber(min, max) {
   return Math.random() * (max - min) + min;
 }
 function checkCollisions() {
-  //console.log('BB de player: ', player._BB);
   if(player && player._BB){
-    for (const chick of chicks) {
-      //console.log('BB de chick:', chick._BB);
-      if(chick._BB){
-        if (player._BB.intersectsBox(chick._BB)){
-          console.log('mi jugador tocó el pollo: ', chick._ChickID);
-          player._Controls._input._keys.forward = false; 
-          player._Controls._velocity = new THREE.Vector3(0, 0, 0);
-          scene.remove(chick._Mesh);
-          scene.remove(chick._boxHelper);
-          fb.child("Games").child(gameID).child("Chicken").child(chick._ChickID).remove();
-          chicks.pop(chick);
+      for (const chick of chicks) {
+        if(chick._BB && chick._Active){
+          if (player._BB.intersectsBox(chick._BB)){
+            console.log('mi jugador colisionó con un pollo');
+            player._Controls._input._keys.forward = false; 
+            player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+            //console.log('ChickGrabbed')
+            //si ya está agarrando un pollo no puede agarrar otro. 
+            if(ChickGrabbed == null && isEkeyPressed){
+              // cuando el jugador agarra el pollo no se borra el pollo, solo se esconde. se borra hasta que toca la casa.
+              console.log('mi jugador agarró un pollo: ', chick._ChickID);
+              ChickGrabbed = chick._ChickID; 
+              chick._Mesh.visible = false; 
+              chick._Active = false;
+              fb.child("Games").child(gameID).child("Chicken").child(chick._ChickID).child("active").set(false);
+              document.getElementById('iconHome').src = '../GameImages/GUI/homeGreen.png';
+            }
+          }
+        }
+      }
+
+    for (const [index, casa] of casasBB.entries()) {
+      if (player._BB.intersectsBox(casa)) {
+        player._Controls._input._keys.forward = false; 
+        player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+        if (player._BarnNumber == index+1) {
+          console.log('choque con mi casa');
+          console.log(chicks);
+          if(ChickGrabbed != null && isEkeyPressed){
+              for(const chick of chicks){
+                console.log(chicks);
+                console.log(chick._ChickID, ' = ', ChickGrabbed);
+                if(chick._ChickID == ChickGrabbed){
+                  console.log(chicks);
+                  scene.remove(chick._Mesh);
+                  scene.remove(chick._boxHelper);
+                  console.log('antes: ', chicks);
+                  chicks.pop(chick);
+                  console.log('despues: ', chicks);
+                  ChickGrabbed = null;
+                  player._Points += 1;  
+                  document.getElementById('scoreGUI').innerHTML = player._Points;
+                  console.log('Puntos: ', player._Points);
+                  fb.child("Games").child(gameID).child("Chicken").child(chick._ChickID).remove();
+                  document.getElementById('iconHome').src = '../GameImages/GUI/homeGray.png';
+                  break;
+                }
+              }
+          }
         }
       }
     }
-
-    for (const casa of casasBB){
-      if(player._BB.intersectsBox(casa)){
-        player._Controls._input._keys.forward = false; 
-        player._Controls._velocity = new THREE.Vector3(0, 0, 0);
-        if(player._BarnNumber == )
-      }
-    }
-
   }
-
 }
+
 
 let APP = null;
 

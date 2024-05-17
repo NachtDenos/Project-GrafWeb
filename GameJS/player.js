@@ -19,6 +19,7 @@ class Player {
         this._BB;
         this._boxHelper;
         this._BarnNumber = barnNumber;
+        this._Points = 0; 
         // create mesh and add mesh to scene 
         this._LoadAnimatedModel();
 

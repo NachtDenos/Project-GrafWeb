@@ -49,9 +49,10 @@
                         primavera.addEventListener('click', function(event) {
                             event.preventDefault();
                             console.log('Primavera button clicked');
-                            
+                            let name = prompt('Nickname de la partida:');
                             let partidaID = fb.child("Games").push().key();
                             fb.child("Games").child(partidaID).child("Configuration").update({
+                                nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
                                 map: 'Primavera'
@@ -62,10 +63,11 @@
                         otoño.addEventListener('click', function(event) {
                             event.preventDefault();
                             console.log('Otoño button clicked');
-
+                            let name = prompt('Nickname de la partida:');
 
                             let partidaID = fb.child("Games").push().key();
                             fb.child("Games").child(partidaID).child("Configuration").update({
+                                nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
                                 map: 'Otoño'
@@ -76,10 +78,11 @@
                         invierno.addEventListener('click', function(event) {
                             event.preventDefault();
                             console.log('Inverno button clicked');
-
+                            let name = prompt('Nickname de la partida:');
 
                             let partidaID = fb.child("Games").push().key();
                             fb.child("Games").child(partidaID).child("Configuration").update({
+                                nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
                                 map: 'Invierno'
