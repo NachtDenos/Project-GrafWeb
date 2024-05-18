@@ -743,6 +743,10 @@ function checkCollisions() {
               collidedChickBad = true; 
               player._Health -= damage;
               let currentWidth = parseFloat(document.getElementById('healthBar').style.width); // Parse the current width as a number
+              if(player._Health <= 0){
+                alert('Lo siento! Perdiste!');
+                window.location.href = `../menu.php`;
+              }
               //console.log(healthBar);
               console.log(currentWidth);
               let newWidth = currentWidth - 12.8; // Subtract 12.8 from the current width
@@ -798,6 +802,8 @@ function checkCollisions() {
     if(item && item._BB){
       if (player._BB.intersectsBox(item._BB)){
         console.log('tocó el item: ', item._Name);
+        player._Controls._input._keys.forward = false; 
+        player._Controls._velocity = new THREE.Vector3(0, 0, 0);
       } 
     }
   }

@@ -356,3 +356,21 @@ canvas {
     right: 0;
     transform: translateX(-50%);
 }
+
+
+#scoreText {
+    position: absolute;
+    z-index: 2155;
+    top: 48%;
+    left: 59%;
+    font-size: 60px;
+
+}
+
+.button-share {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    position: absolute;
+    top: 72%;
+}

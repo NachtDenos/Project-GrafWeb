@@ -63,7 +63,7 @@ $conn->close();
                     <thead>
                         <tr>
                             <th>Usuario</th>
-                            <th>Puntos</th>
+                            <th>Maxima puntuación</th>
                         </tr>
                     </thead>
                     <tbody>
