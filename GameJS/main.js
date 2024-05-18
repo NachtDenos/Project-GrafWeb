@@ -7,7 +7,7 @@ import { Player } from './player.js';
 import { Chick } from './chick.js';
 import { mix } from 'three/examples/jsm/nodes/Nodes.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
@@ -22,11 +22,15 @@ let pantallaWaiting = document.getElementById('waitingRoom');
 let pantallaPause = document.getElementById('pause');
 let timerGUI = document.getElementById('timerGUI');
 let waitingText = document.getElementById('waitingRoomText');
+let lobbyMusic = document.getElementById("lobbyMusic");
 
 let isEscPressed = false;
 let isEkeyPressed = false; 
 let collidedChickBad = false; 
 let gameStarted = false;
+
+let effectsVolume = 100;
+let musicVolume = 100; 
 
 function initialize() {
   pantallaWaiting.style.display = 'block'; 
@@ -38,6 +42,20 @@ function initialize() {
     isServer = urlParams.get('isServer');
 
     try {
+
+      fb.child('General').child('Configuration').once('value', function(snapshot)  {
+        const gameData = snapshot.val();
+
+        if (gameData) {
+          effectsVolume = gameData.effects;
+          musicVolume = gameData.music;
+        } else {
+            console.log('data not found');
+        }
+      }); 
+
+      document.body.addEventListener("mousemove", playLobbyMusic);
+
       fb.child('Games').child(gameID).once('value', function(snapshot)  {
         const gameData = snapshot.val();
         if (gameData) {
@@ -60,8 +78,10 @@ function initialize() {
               setInterval(updateTimerWaitroom, 1000);
               setTimeout(()=>{
                 gameStarted = true; 
+                lobbyMusic.pause();
                 pantallaWaiting.style.display = 'none'; 
                 startTimer();
+                fondoMusic.play();
               }, 7000);
             }
             loadScene();
@@ -71,23 +91,38 @@ function initialize() {
             window.location.href = 'index.html';
         }
       }); 
+
+
     } catch (error) {
       console.error('Error in Firebase operation:', error);
       window.location.href = 'index.html';
     }
 }
+
+function playLobbyMusic(){
+  lobbyMusic.play();
+  lobbyMusic.volume = musicVolume/100;
+  document.body.removeEventListener("mousemove", playLobbyMusic);
+}
+
 function checkStartGame(snapshot){
   GamePlayers = snapshot.numChildren();
   ('Jugadores en el juego: ', GamePlayers);
   waitingRoomText.innerText = GamePlayers + '/4';
+
+
+
   if(GamePlayers == 2){
     timerWaitroom = 5;
     waitingRoomText.innerText = timerWaitroom;
+
     setInterval(updateTimerWaitroom, 1000);
     setTimeout(()=>{
       gameStarted = true; 
+      lobbyMusic.pause();
       pantallaWaiting.style.display = 'none'; 
       startTimer();
+      fondoMusic.play();
       fb.child("Games").child(gameID).child("Players").off("value", checkStartGame);
     }, 10000);
   }else {
@@ -151,6 +186,31 @@ function loadScene(){
   camera.lookAt(new THREE.Vector3(0,-12,0));
   camera.aspect = width / height;
 
+  const audioListener = new THREE.AudioListener();
+  camera.add(audioListener);
+  const audioLoader = new THREE.AudioLoader();
+
+  fondoMusic = new THREE.Audio(audioListener);
+  audioLoader.load("../GameMusic/GameMusic.mp3", function(buffer){
+      fondoMusic.setBuffer(buffer);
+      fondoMusic.setLoop(true);
+      fondoMusic.setVolume(musicVolume/100);
+  });
+
+  getEffect = new THREE.Audio(audioListener);
+  audioLoader.load("../GameMusic/GetEffect.mp3", function(buffer){
+    getEffect.setBuffer(buffer);
+    getEffect.setLoop(false);
+    getEffect.setVolume(effectsVolume/100);
+  });
+
+  damageEffect = new THREE.Audio(audioListener);
+  audioLoader.load("../GameMusic/DamageEffect.mp3", function(buffer){
+    damageEffect.setBuffer(buffer);
+    damageEffect.setLoop(false);
+    damageEffect.setVolume(effectsVolume/100);
+  });
+
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color("#7FE2F3");
@@ -174,20 +234,6 @@ function loadScene(){
 
   light = new THREE.AmbientLight(0xFFFFFF, 1.0);
   scene.add(light);
-
-  /*const fbxLoader = new FBXLoader();
-    fbxLoader.load('../GameModels/escenarioPrueba1.fbx', (object) => {
-      object.scale.multiplyScalar(0.003); 
-      this._scene.add(object);
-      },
-      (xhr) => {
-          console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-    },
-    (error) => {
-        console.log(error)
-    }
-  );*/
-  
 
   const loader = new GLTFLoader();
   const escenarioURL = '../GameModels/escenario'+ map + '.gltf';
@@ -643,6 +689,7 @@ function checkCollisions() {
             if(ChickGrabbed == null && isEkeyPressed){
               // cuando el jugador agarra el pollo no se borra el pollo, solo se esconde. se borra hasta que toca la casa.
               console.log('mi jugador agarró un pollo: ', chick._ChickID);
+              getEffect.play();
               ChickGrabbed = chick._ChickID; 
               chick._Mesh.visible = false; 
               chick._Active = false;
@@ -662,6 +709,7 @@ function checkCollisions() {
             player._Controls._velocity = new THREE.Vector3(0, 0, 0);
             //bajar la vida
             if(!collidedChickBad){
+              damageEffect.play();
               collidedChickBad = true; 
               player._Health -= damage;
               let currentWidth = parseFloat(document.getElementById('healthBar').style.width); // Parse the current width as a number
@@ -692,6 +740,7 @@ function checkCollisions() {
                 console.log(chicks);
                 console.log(chick._ChickID, ' = ', ChickGrabbed);
                 if(chick._ChickID == ChickGrabbed){
+                  getEffect.play();
                   console.log(chicks);
                   scene.remove(chick._Mesh);
                   scene.remove(chick._boxHelper);
