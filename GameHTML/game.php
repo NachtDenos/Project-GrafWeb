@@ -52,8 +52,10 @@
             <script src="../GameJS/main.js" type="module">
             </script>
         </div>
-        <button class="back-button" onclick="window.history.back()">
-            <img src="../GameImages/regresar.png" alt="Back">
+        <button class="back-button">
+            <a href="../menu.php">
+                <img src="../GameImages/regresar.png" alt="Back">
+            </a>
         </button>
     </div>
     <audio id="lobbyMusic" loop>

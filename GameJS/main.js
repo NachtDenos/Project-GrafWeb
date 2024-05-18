@@ -3,8 +3,9 @@ import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/j
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import { Player } from './player.js'; 
 import { Chick } from './chick.js';
+import { Item } from './item.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect, itemBB;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect, item, itemBB, itemBoxHelper;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
@@ -147,7 +148,7 @@ function startTimer(){
 
     setTimeout(() => {
       clearInterval(timerInterval); // Stop the timer interval
-    }, 60000);
+    }, 61000);
   }
 }
 
@@ -252,65 +253,6 @@ function loadScene(){
       }
   );
 
-  loader.load(
-    '../GameModels/FirstAidKit.glb',
-      ( gltf ) => {
-          scene.add( gltf.scene );
-          gltf.animations; 
-          const mesh = gltf.scene; 
-          gltf.scenes; 
-          gltf.cameras; 
-          gltf.asset;
-          mesh.position.set(0,0,3);
-      },
-      ( xhr )  => {
-          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-      },
-      ( error ) => {
-          console.log( 'An error happened:',error );
-      }
-  );
-
-  loader.load(
-    '../GameModels/Soda.glb',
-      ( gltf ) => {
-          scene.add( gltf.scene );
-          gltf.animations; 
-          const mesh = gltf.scene; 
-          gltf.scenes; 
-          gltf.cameras; 
-          gltf.asset;
-          mesh.position.set(0,0,1);
-      },
-      ( xhr )  => {
-          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-      },
-      ( error ) => {
-          console.log( 'An error happened:',error );
-      }
-  );
-
-  /*loader.load('../GameModels/FirstAidKit.glb', (gltf) => {
-    const mesh = gltf.scene;
-    mesh.scale.setScalar(1);
-    mesh.traverse(c => {
-    c.castShadow = true;
-    }); 
-    scene.add(mesh);
-  });*/
-
-  /*const fbxLoader = new FBXLoader();
-  fbxLoader.load('../GameModels/FirstAidKit.fbx', (object) => {
-      scene.add(object);
-      },
-      (xhr) => {
-          console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-    },
-    (error) => {
-        console.log(error)
-    }
-  );*/
-
   // -------------------------- COLISIONES ESCENARIO -------------------------- //
 
   const casa1Geometry = new THREE.BoxGeometry( 5, 4, 5 ); 
@@ -389,6 +331,8 @@ function loadScene(){
 
   listenToChicken();
 
+  setInterval(randomItem, randomNumber(4000,6000));
+
   //window.onbeforeunload = function() {
   //    fb.child("Players").child(playerID).remove();
   //};
@@ -420,6 +364,20 @@ function loadScene(){
   });
 
 } 
+
+function randomItem(){
+
+  //cada 4-6 segundos genera un random item si no existe uno y si si lo borra. 
+  if(item){
+    scene.remove(item._Mesh);
+    scene.remove(item._boxHelper);
+    item = null;
+  }else{
+    let itemID = fb.child("Games").child(gameID).child("Item").push().key();
+    item = new Item(itemID, gameID, scene, null, randomItemName());
+  }
+
+}
 
 function keyEvents(event) {
   if (event.key === 'Escape') {
@@ -726,6 +684,8 @@ function updateTimer(){
   if (timer > 0) {
     timer --;
     timerGUI.innerText = timer; 
+  }else{
+    window.location.href = `gameEnded.php?score=${player._Points}`;
   }
 }
 
@@ -733,9 +693,23 @@ function updateTimer(){
 function randomNumber(min, max) {
   return Math.random() * (max - min) + min;
 }
+
+function randomItemName() {
+  const words = ["FirstAidKit", "Soda", "Mitten"];
+    // Barajamos el arreglo usando el algoritmo de Fisher-Yates
+    for (let i = words.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [words[i], words[j]] = [words[j], words[i]];
+    }
+    // Seleccionamos una palabra aleatoria del arreglo barajado
+    const randomIndex = Math.floor(Math.random() * words.length);
+    console.log(words[randomIndex]);
+    return words[randomIndex];
+}
+
 function checkCollisions() {
   if(player && player._BB){
-      for (const chick of chicks) {
+    for (const chick of chicks) {
         if(chick._BB && chick._Active){
           if (player._BB.intersectsBox(chick._BB)){
             console.log('mi jugador colisionó con un pollo');
@@ -755,10 +729,9 @@ function checkCollisions() {
             }
           }
         }
-      }
+    }
 
-      //const healthBar = document.getElementById('healthBar');
-      for (const chick of chicksBad) {
+    for (const chick of chicksBad) {
         if(chick._BB && chick._Active){
           if (player._BB.intersectsBox(chick._BB)){
             console.log('mi jugador colisionó con un pollo malo');
@@ -783,7 +756,7 @@ function checkCollisions() {
             }
           }
         }
-      }
+    }
 
     for (const [index, casa] of casasBB.entries()) {
       if (player._BB.intersectsBox(casa)) {
@@ -820,6 +793,12 @@ function checkCollisions() {
           }
         }
       }
+    }
+
+    if(item && item._BB){
+      if (player._BB.intersectsBox(item._BB)){
+        console.log('tocó el item: ', item._Name);
+      } 
     }
   }
 }
