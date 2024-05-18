@@ -1,11 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio - Kollector Chicken</title>
     <link rel="stylesheet" href="../Project-GrafWeb/GameCSS/style.css">
     <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
+    <title>Iniciar Sesión</title>
+    <style>
+        .container-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-wrapper {
+            position: relative;
+            width: 400px; 
+            height: 500px;
+        }
+
+        .login-image {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .login-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-form input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #DE522D;
+            color: white;
+            cursor: pointer;
+        }
+
+        .login-form a {
+            display: block;
+            margin-top: 10px;
+            color: #d43c3c;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container-main">
@@ -34,37 +99,47 @@
                 </a>
             </button>
         </div>
-        <audio id="backgroundMusic" loop>
-            <source src="../Project-GrafWeb/GameMusic/BestFriend.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <script>
-            let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
-            sessionStorage.setItem('gameEntry', 'valid');
-            let valueMusic = 100;
-            fb.child("General").child("Configuration").once("value", function(snapshot) {
-                if (snapshot.exists()) {
-                    console.log('snapshot exists');
-                    console.log(snapshot);
-                    valueMusic = snapshot.val().music;
-                    console.log(valueMusic);
-                } else {
-                    console.log("No data found.");
-                }
-            }, function(error) {
-                console.error("Error fetching data:", error);
-            });
-
-            document.addEventListener("DOMContentLoaded", function() {
-                const backgroundMusic = document.getElementById("backgroundMusic");
-                document.body.addEventListener("mousemove", function () {
-                    backgroundMusic.play();
-                    backgroundMusic.volume = valueMusic/100;
-                    console.log(backgroundMusic.volume);
-                })
-            });
-        </script>
-        <!--<script src="../GameJS/general.js" type="module"></script>-->
+        <div class="login-wrapper">
+            <div class="login-image">
+                <img src="http://localhost/graficas/GameImages/login/login.png">
+            </div>
+            <form class="login-form" action="login.php" method="post">
+                <input type="text" id="username" name="username"  placeholder="usuario"><br><br>
+                <input type="password" id="password" name="password" placeholder="password"><br><br>
+                <input type="submit" value="Iniciar">
+                <a href="registro.html" style="text-decoration: underline;"> Registrate aqui</a>
+            </form>
+        </div>
     </div>
+    <audio id="backgroundMusic" loop>
+        <source src="../Project-GrafWeb/GameMusic/BestFriend.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <script>
+        let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
+        sessionStorage.setItem('gameEntry', 'valid');
+        let valueMusic = 100;
+        fb.child("General").child("Configuration").once("value", function(snapshot) {
+            if (snapshot.exists()) {
+                console.log('snapshot exists');
+                console.log(snapshot);
+                valueMusic = snapshot.val().music;
+                console.log(valueMusic);
+            } else {
+                console.log("No data found.");
+            }
+        }, function(error) {
+            console.error("Error fetching data:", error);
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const backgroundMusic = document.getElementById("backgroundMusic");
+            document.body.addEventListener("mousemove", function () {
+                backgroundMusic.play();
+                backgroundMusic.volume = valueMusic/100;
+                console.log(backgroundMusic.volume);
+            })
+        });
+    </script>
 </body>
 </html>

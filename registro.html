@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="http://localhost/graficas/GameCSS/style.css">
+    <style>
+        .container-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-wrapper {
+            position: relative;
+            width: 400px; 
+            height: 500px;
+        }
+
+        .login-image {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .login-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-form input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #DE522D;
+            color: white;
+            cursor: pointer;
+        }
+
+        .login-form a {
+            display: block;
+            margin-top: 10px;
+            color: #d43c3c;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-main">
+        <div class="logo">
+            <img src="http://localhost/graficas/GameImages/Logo.png">
+        </div>
+        
+        <div class="login-wrapper">
+            <div class="login-image">
+                <img src="http://localhost/graficas/GameImages/login/registro.png">
+            </div>
+            <form class="login-form" action="registro.php" method="post">
+                <label for="username">Nombre de usuario:</label>
+                <input type="text" id="username" name="username"><br><br>
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password"><br><br>
+                <input type="submit" value="Registrar">
+                <a href="index.html" style="text-decoration: underline;">Tienes cuenta? Inicia sesion</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

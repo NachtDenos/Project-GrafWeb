@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puntuación - Kollector Chicken</title>
-    <link rel="stylesheet" href="../GameCSS/style.css">
+    <link rel="stylesheet" href="http://localhost/graficas/GameCSS/style.css">
     <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
 </head>
 <body>
@@ -53,7 +53,7 @@
             </script>
         </div>
         <button class="back-button" onclick="window.history.back()">
-            <img src="../GameImages/regresar.png" alt="Back">
+            <img src="http://localhost/graficas/GameImages/regresar.png" alt="Back">
         </button>
     </div>
     <audio id="lobbyMusic" loop>
