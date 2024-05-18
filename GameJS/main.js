@@ -339,7 +339,7 @@ function loadScene(){
 
   RAF();
 
-  window.addEventListener('keydown', keyEvents);
+  window.addEventListener('keydown', keyDownEvents);
   window.addEventListener('keyup', keyUpEvents);
 
   window.addEventListener('beforeunload', function (event) {
@@ -380,7 +380,7 @@ function randomItem(){
 
 }
 
-function keyEvents(event) {
+function keyDownEvents(event) {
   if (event.key === 'Escape') {
     if (!isEscPressed) {
       console.log('First time Esc key pressed');
@@ -397,12 +397,15 @@ function keyEvents(event) {
     if (!isEkeyPressed) {
       isEkeyPressed = true;
       console.log('se presionó la E');
-    } else {
-      isEkeyPressed = false;
-    }
+    } 
   }
 }
 
+function keyUpEvents(event) {
+  if (event.key === 'E' || event.key === 'e') {
+    isEkeyPressed = false;
+  }
+}
 
 function initChicken(){
   chickGroup = new THREE.Group();
