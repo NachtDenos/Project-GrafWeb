@@ -6,6 +6,21 @@
     <title>Buscar Partida - Kollector Chicken</title>
     <link rel="stylesheet" href="../GameCSS/style.css">
     <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 50px 0;
+            font-size: 18px;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #fff;
+        }
+        th {
+        }
+    </style>
 </head>
 <body>
     <div class="container-main">

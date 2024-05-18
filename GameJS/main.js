@@ -4,7 +4,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/
 import { Player } from './player.js'; 
 import { Chick } from './chick.js';
 
-let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect;
+let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect, itemBB;
 
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
@@ -252,6 +252,65 @@ function loadScene(){
       }
   );
 
+  loader.load(
+    '../GameModels/FirstAidKit.glb',
+      ( gltf ) => {
+          scene.add( gltf.scene );
+          gltf.animations; 
+          const mesh = gltf.scene; 
+          gltf.scenes; 
+          gltf.cameras; 
+          gltf.asset;
+          mesh.position.set(0,0,3);
+      },
+      ( xhr )  => {
+          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      },
+      ( error ) => {
+          console.log( 'An error happened:',error );
+      }
+  );
+
+  loader.load(
+    '../GameModels/Soda.glb',
+      ( gltf ) => {
+          scene.add( gltf.scene );
+          gltf.animations; 
+          const mesh = gltf.scene; 
+          gltf.scenes; 
+          gltf.cameras; 
+          gltf.asset;
+          mesh.position.set(0,0,1);
+      },
+      ( xhr )  => {
+          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      },
+      ( error ) => {
+          console.log( 'An error happened:',error );
+      }
+  );
+
+  /*loader.load('../GameModels/FirstAidKit.glb', (gltf) => {
+    const mesh = gltf.scene;
+    mesh.scale.setScalar(1);
+    mesh.traverse(c => {
+    c.castShadow = true;
+    }); 
+    scene.add(mesh);
+  });*/
+
+  /*const fbxLoader = new FBXLoader();
+  fbxLoader.load('../GameModels/FirstAidKit.fbx', (object) => {
+      scene.add(object);
+      },
+      (xhr) => {
+          console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+    (error) => {
+        console.log(error)
+    }
+  );*/
+
   // -------------------------- COLISIONES ESCENARIO -------------------------- //
 
   const casa1Geometry = new THREE.BoxGeometry( 5, 4, 5 ); 
@@ -450,6 +509,7 @@ function initChicken(){
                 const positionData = childSnapshot.val().position;
                 const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
                 console.log('childSnapshot.val(): ', childSnapshot.key());
+                console.log('type of chicken dificulty:', childSnapshot.val().type);
                 let chick = new Chick(childSnapshot.key(), gameID, chickGroup, scene, position, childSnapshot.val().type); 
 
                 setTimeout(() => {
