@@ -4,10 +4,9 @@ include '../conexion.php';
 session_start();
 
 if (isset($_SESSION['username'])) {
-    $username = $_SESSION['username'];
     $user_id = $_SESSION['user_id'];
 
-    $sql = "SELECT pts FROM jugadores WHERE id = $user_id";
+    $sql = "SELECT user, pts FROM jugadores WHERE id = $user_id";
 
     try {
         $result = $conn->query($sql);
@@ -18,8 +17,10 @@ if (isset($_SESSION['username'])) {
 
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
+            $username = $row['user'];
             $current_pts = $row['pts'];
         } else {
+            $username = 'Invitado';
             $current_pts = 0;
         }
     } catch (Exception $e) {
@@ -44,6 +45,9 @@ if (isset($_SESSION['username'])) {
     }
 
     $conn->close();
+} else {
+    header("Location: ../login.php");
+    exit();
 }
 ?>
 
@@ -77,12 +81,13 @@ if (isset($_SESSION['username'])) {
         <script>
             const urlParams = new URLSearchParams(window.location.search);
             const score = urlParams.get('score');
+            const username = "<?php echo $username; ?>";
 
             let scoreText = document.getElementById('scoreText');
             scoreText.innerText = score; 
 
             function shareScore() {
-                const message = `Tu puntuación es: ${score}`;
+                const message = `${username} ha alcanzado una puntuación de: ${score}`;
 
                 FB.api(
                     "/331396916715898/feed",
