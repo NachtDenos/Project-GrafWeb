@@ -16,6 +16,11 @@
                 <img src="../GameImages/Pantalla juego/end.png">
             </div>
         </div>
+        <button class="buttons-settings">
+                <a href="">
+                <img src="../GameImages/Pantalla juego/compartir.png" alt="Compartir en Facebook">
+                </a>
+        </button>
         <button class="back-button">
             <a href="../menu.php">
                 <img src="../GameImages/regresar.png" alt="Back">
