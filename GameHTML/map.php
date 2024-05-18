@@ -4,32 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puntuación - Kollector Chicken</title>
-    <link rel="stylesheet" href="http://localhost/graficas/GameCSS/style.css">
+    <link rel="stylesheet" href="../GameCSS/style.css">
     <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
 </head>
 <body>
     <div class="container-main">
         <div class="logo">
-            <img src="http://localhost/graficas/GameImages/Logo.png">
+            <img src="../GameImages/Logo.png">
         </div>
         <div class="leaderboard-wrapper">
             <div class="leaderboard-image">
-                <img src="http://localhost/graficas/GameImages/mapas/GUI.png">
+                <img src="../GameImages/mapas/GUI.png">
             </div>
             <div class="buttons-row">
                 <button class="custom-button" id="primaveraBtn">
-                    <img src="http://localhost/graficas/GameImages/mapas/prim.png" alt="Botón 1">
+                    <img src="../GameImages/mapas/prim.png" alt="Botón 1">
                 </button>
                 <button class="custom-button" id="otonoBtn">
-                    <img src="http://localhost/graficas/GameImages/mapas/otonio.png" alt="Botón 2">
+                    <img src="../GameImages/mapas/otonio.png" alt="Botón 2">
                 </button>
                 <button class="custom-button" id="inviernoBtn">
-                    <img src="http://localhost/graficas/GameImages/mapas/invierno.png" alt="Botón 2">
+                    <img src="../GameImages/mapas/invierno.png" alt="Botón 2">
                 </button>
             </div>
         </div>
         <button class="back-button" onclick="window.history.back()">
-            <img src="http://localhost/graficas/GameImages/regresar.png" alt="Back">
+            <img src="../GameImages/regresar.png" alt="Back">
         </button>
         <script>
             document.addEventListener('DOMContentLoaded', function() {

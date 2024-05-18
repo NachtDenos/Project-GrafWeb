@@ -10,11 +10,11 @@
 <body>
     <div class="container-main">
         <div class="logo">
-            <img src="http://localhost/graficas/GameImages/Logo.png">
+            <img src="../GameImages/Logo.png">
         </div>
         <div class="leaderboard-wrapper">
             <div class="settings-image">
-                <img src="http://localhost/graficas/GameImages/Ajustes/AjusteBase.png">
+                <img src="../GameImages/Ajustes/AjusteBase.png">
             </div>
             <div class="settings-image" style="flex-direction:column;">
                 <div class="slider" id="sliderEffects" style="top:-9rem;">
@@ -31,9 +31,9 @@
             </button>-->
         </div>
         <button class="back-button" onclick="window.history.back()">
-            <img src="http://localhost/graficas/GameImages/regresar.png" alt="Back">
+            <img src="../GameImages/regresar.png" alt="Back">
         </button>
     </div>
-    <script src="http://localhost/graficas/GameJS/slider.js"></script>
+    <script src="../GameJS/slider.js"></script>
 </body>
 </html>

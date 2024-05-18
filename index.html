@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../Project-GrafWeb/GameCSS/style.css">
-    <script src="http://cdn.firebase.com/js/client/2.4.1/firebase.js"></script>
     <title>Iniciar Sesión</title>
     <style>
         .container-main {
@@ -77,31 +76,9 @@
         <div class="logo">
             <img src="../Project-GrafWeb/GameImages/Logo.png">
         </div>
-        <div class="buttons-menu">
-            <button>
-                <a href="../Project-GrafWeb/GameHTML/gameMode.html">
-                <img src="../Project-GrafWeb/GameImages/Pagina principal/crearPartida.png" alt="Prueba">
-                </a>
-            </button>
-            <button>
-                <a href="../Project-GrafWeb/GameHTML/searchGame.html">
-                <img src="../Project-GrafWeb/GameImages/Pagina principal/unirse.png" alt="Prueba">
-                </a>
-            </button>
-            <button>
-                <a href="../Project-GrafWeb/GameHTML/settings.html">
-                <img src="../Project-GrafWeb/GameImages/Pagina principal/ajuste.png" alt="Prueba">
-                </a>
-            </button>
-            <button>
-                <a href="../Project-GrafWeb/GameHTML/leaderboard.html">
-                <img src="../Project-GrafWeb/GameImages/Pagina principal/puntuacion.png" alt="Prueba">
-                </a>
-            </button>
-        </div>
         <div class="login-wrapper">
             <div class="login-image">
-                <img src="http://localhost/graficas/GameImages/login/login.png">
+                <img src="../Project-GrafWeb/GameImages/login/login.png">
             </div>
             <form class="login-form" action="login.php" method="post">
                 <input type="text" id="username" name="username"  placeholder="usuario"><br><br>
@@ -111,35 +88,5 @@
             </form>
         </div>
     </div>
-    <audio id="backgroundMusic" loop>
-        <source src="../Project-GrafWeb/GameMusic/BestFriend.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <script>
-        let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
-        sessionStorage.setItem('gameEntry', 'valid');
-        let valueMusic = 100;
-        fb.child("General").child("Configuration").once("value", function(snapshot) {
-            if (snapshot.exists()) {
-                console.log('snapshot exists');
-                console.log(snapshot);
-                valueMusic = snapshot.val().music;
-                console.log(valueMusic);
-            } else {
-                console.log("No data found.");
-            }
-        }, function(error) {
-            console.error("Error fetching data:", error);
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const backgroundMusic = document.getElementById("backgroundMusic");
-            document.body.addEventListener("mousemove", function () {
-                backgroundMusic.play();
-                backgroundMusic.volume = valueMusic/100;
-                console.log(backgroundMusic.volume);
-            })
-        });
-    </script>
 </body>
 </html>
