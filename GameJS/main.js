@@ -340,6 +340,7 @@ function loadScene(){
   RAF();
 
   window.addEventListener('keydown', keyEvents);
+  window.addEventListener('keyup', keyUpEvents);
 
   window.addEventListener('beforeunload', function (event) {
     fb.child("Games").child(gameID).child("Players").child(playerID).remove();

@@ -374,3 +374,9 @@ canvas {
     position: absolute;
     top: 72%;
 }
+
+.button-share img {
+    max-width: 20%;
+    height: auto;
+    margin-left: 45px;
+}
