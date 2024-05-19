@@ -141,14 +141,14 @@ function updateTimerWaitroom(){
 }
 
 function startTimer(){
-  timer = 60;
+  timer = 80;
 
   if(gameStarted){
     let timerInterval = setInterval(updateTimer, 1000);
 
     setTimeout(() => {
       clearInterval(timerInterval); // Stop the timer interval
-    }, 61000);
+    }, 81000);
   }
 }
 
@@ -331,7 +331,13 @@ function loadScene(){
 
   listenToChicken();
 
-  setInterval(randomItem, randomNumber(4000,6000));
+  if(isServer == 'true' || isServer == true){
+    setInterval(initRandomItem, randomNumber(7000,9000));
+  }
+
+  if(isServer == 'false' || isServer == false){
+    listenToItem();
+  }
 
   //window.onbeforeunload = function() {
   //    fb.child("Players").child(playerID).remove();
@@ -366,16 +372,57 @@ function loadScene(){
 
 } 
 
-function randomItem(){
+function listenToItem(){
+  fb.child("Games").child(gameID).child("Item").on("value", function(snapshot) {
+    console.log('evento change chick value');
+    if (snapshot.exists()) {
+      console.log('snapshot exists');
+      console.log('snapshot: ', snapshot.exists());
+      snapshot.forEach(function(childSnapshot) {
+        const positionData = childSnapshot.val().position;
+        const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
+        item = new Item(childSnapshot.key(), gameID, scene, position, childSnapshot.val().name); 
+      });
+      
+    } else {
+        console.log("No chickens found.");
+    }
+  }, function(error) {
+    console.error("Error fetching chickens:", error);
+  });
+  fb.child("Games").child(gameID).child("Item").on("child_removed", function(snapshot) {
+    console.log('Entró al evento de borrar pollos');
+    console.log(snapshot.key());
+    const deletedID = snapshot.key();
+    if(item && (deletedID == item._ItemID)){
+      scene.remove(item._Mesh);
+      scene.remove(item._boxHelper);
+      item = null;
+    }
+  });
+}
+
+function initRandomItem(){
 
   //cada 4-6 segundos genera un random item si no existe uno y si si lo borra. 
   if(item){
     scene.remove(item._Mesh);
     scene.remove(item._boxHelper);
+    fb.child("Games").child(gameID).child("Item").child(item._ItemID).remove();
     item = null;
   }else{
     let itemID = fb.child("Games").child(gameID).child("Item").push().key();
     item = new Item(itemID, gameID, scene, null, randomItemName());
+    setTimeout(() => {
+      fb.child("Games").child(gameID).child("Item").child(itemID).set({
+        name: item._Name,
+        position:{
+          x: item._Mesh.position.x,
+          y: item._Mesh.position.y,
+          z: item._Mesh.position.z
+        }
+      });
+    }, 1000);
   }
 
 }
@@ -459,7 +506,7 @@ function initChicken(){
           }
         });
         console.log('chick._Active: ', chick._Active);
-        }, 10000);
+      }, 10000);
       
     }
   }else{
@@ -693,7 +740,6 @@ function updateTimer(){
   }
 }
 
-
 function randomNumber(min, max) {
   return Math.random() * (max - min) + min;
 }
@@ -747,20 +793,21 @@ function checkCollisions() {
               collidedChickBad = true; 
               player._Health -= damage;
               let currentWidth = parseFloat(document.getElementById('healthBar').style.width); // Parse the current width as a number
+              let newWidth = currentWidth - 12.8; // Subtract 12.8 from the current width
+              if(damage == 20){
+                newWidth = currentWidth -16;
+              }
+              console.log(newWidth);
+              document.getElementById('healthBar').style.width = newWidth + '%';
               if(player._Health <= 0){
                 alert('Lo siento! Perdiste!');
                 window.location.href = `../menu.php`;
               }
-              //console.log(healthBar);
-              console.log(currentWidth);
-              let newWidth = currentWidth - 12.8; // Subtract 12.8 from the current width
-              console.log(newWidth);
-              document.getElementById('healthBar').style.width = newWidth + '%';
               console.log('health: ', player._Health);
             }else{
               setTimeout(()=>{
                 collidedChickBad = false; 
-              },5000);
+              },2000);
             }
           }
         }
@@ -778,18 +825,13 @@ function checkCollisions() {
                 console.log(chicks);
                 console.log(chick._ChickID, ' = ', ChickGrabbed);
                 if(chick._ChickID == ChickGrabbed){
-                  getEffect.play();
-                  console.log(chicks);
-                  scene.remove(chick._Mesh);
-                  scene.remove(chick._boxHelper);
+                  ChickGrabbed = null;
                   console.log('antes: ', chicks);
-                  for(const chick2 of chicks)
-                    console.log(chick2._ChickID);
                   chicks.pop(chick);
                   console.log('despues: ', chicks);
-                  for(const chick3 of chicks)
-                    console.log(chick3._ChickID);
-                  ChickGrabbed = null;
+                  getEffect.play();
+                  scene.remove(chick._Mesh);
+                  scene.remove(chick._boxHelper);
                   player._Points += 1;  
                   document.getElementById('scoreGUI').innerHTML = player._Points;
                   console.log('Puntos: ', player._Points);
@@ -800,7 +842,7 @@ function checkCollisions() {
               }
           }
         }
-      }
+      } 
     }
 
     if(item && item._BB){
@@ -808,6 +850,31 @@ function checkCollisions() {
         console.log('tocó el item: ', item._Name);
         player._Controls._input._keys.forward = false; 
         player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+        if(isEkeyPressed){
+          getEffect.play();
+          scene.remove(item._Mesh);
+          scene.remove(item._boxHelper); 
+          if(item._Name == 'FirstAidKit'){
+            console.log('Previous health: ',player._Health);
+            player._Health = 50;
+            document.getElementById('healthBar').style.width = 64 + '%';
+            console.log('New health: ',player._Health);
+          }else if (item._Name == 'Soda'){
+            console.log('Previous speed:', player._Controls._acceleration);
+            player._Controls._acceleration = player._Controls._acceleration.multiplyScalar(1.2);
+            console.log('New speed:', player._Controls._acceleration);
+          }
+          else if (item._Name == 'Mitten'){
+            console.log('effecto mitten');  
+            for (const chick of chicksBad) {
+              chick._Type = 'good';
+              chicks.push(chick);
+            }
+            chicksBad = [];
+          }
+
+          item = null;
+        }
       } 
     }
   }

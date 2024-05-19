@@ -34,8 +34,12 @@ class Item {
                 gltf.scenes; 
                 gltf.cameras; 
                 gltf.asset;
-                this._Mesh.position.set(this.randomNumber(-7,12),0,this.randomNumber(0,17));
-
+                if(this._PositionRecieved){
+                    console.log('antes de establecer la posición;');
+                    this._Mesh.position.set(this._PositionRecieved.x, this._PositionRecieved.y, this._PositionRecieved.z);
+                }else{
+                    this._Mesh.position.set(this.randomNumber(-7,12),0,this.randomNumber(0,17));
+                }
                 this._BB = new THREE.Box3();
                 this._BB.setFromObject(this._Mesh);
                 this._boxHelper = new THREE.Box3Helper( this._BB, 0xffff00 );
