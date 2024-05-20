@@ -16,6 +16,9 @@ let chicksBad = [];
 let casasBB = [];
 let ChickGrabbed = null; 
 
+let particles;
+let particleCount;
+
 let pantallaWaiting = document.getElementById('waitingRoom');
 let pantallaPause = document.getElementById('pause');
 let timerGUI = document.getElementById('timerGUI');
@@ -73,7 +76,7 @@ function initialize() {
             }else {
               timerWaitroom = 5;
               waitingRoomText.innerText = timerWaitroom;
-              setInterval(updateTimerWaitroom, 1000);
+              setInterval(updateTimerWaitroom, 2000);
               setTimeout(()=>{
                 gameStarted = true; 
                 lobbyMusic.pause();
@@ -141,14 +144,14 @@ function updateTimerWaitroom(){
 }
 
 function startTimer(){
-  timer = 80;
+  timer = 150;
 
   if(gameStarted){
     let timerInterval = setInterval(updateTimer, 1000);
 
     setTimeout(() => {
       clearInterval(timerInterval); // Stop the timer interval
-    }, 81000);
+    }, 151000);
   }
 }
 
@@ -339,6 +342,87 @@ function loadScene(){
     listenToItem();
   }
 
+  // -------------------------  PARTICULAS ---------------------------------//
+
+  if(map == 'Invierno'){
+    particleCount = 10000;
+    particles = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+        particlePositions[i * 3] = Math.random() * 2000 - 1000; // x
+        particlePositions[i * 3 + 1] = Math.random() * 2000 - 1000; // y
+        particlePositions[i * 3 + 2] = Math.random() * 2000 - 1000; // z
+    }
+
+    particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+        color: 0xFFFFFF,
+        size: 4,
+        map: new THREE.TextureLoader().load('../GameImages/Particulas/copo.png'),
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthTest: false
+    });
+
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+  }else if(map == 'Otoño'){
+    particleCount = 1000;
+    particles = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleVelocities = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+        particlePositions[i * 3] = Math.random() * 2000 - 1000; // x
+        particlePositions[i * 3 + 1] = Math.random() * 2000 - 1000; // y
+        particlePositions[i * 3 + 2] = Math.random() * 2000 - 1000; // z
+
+        particleVelocities[i * 3] = (Math.random() - 0.5) * 2; // velocity x
+        particleVelocities[i * 3 + 1] = -Math.random(); // velocity y (falling)
+        particleVelocities[i * 3 + 2] = (Math.random() - 0.5) * 2; // velocity z
+    }
+
+    particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particles.setAttribute('velocity', new THREE.BufferAttribute(particleVelocities, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+        color: 0xFF8C00, // Autumn leaf color
+        size: 6,
+        map: new THREE.TextureLoader().load('../GameImages/Particulas/leaf.png'),
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthTest: false
+    });
+
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+  }else if (map == 'Primavera'){
+    particleCount = 8000;
+    particles = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+        particlePositions[i * 3] = Math.random() * 2000 - 1000; // x
+        particlePositions[i * 3 + 1] = Math.random() * 2000 - 1000; // y
+        particlePositions[i * 3 + 2] = Math.random() * 2000 - 1000; // z
+    }
+
+    particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particleMaterial = new THREE.PointsMaterial({
+      color: 0x00AFFF,
+      size: 1,
+      map: new THREE.TextureLoader().load('../GameImages/Particulas/gota.png'),
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthTest: false
+  });
+
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+  }
+
   //window.onbeforeunload = function() {
   //    fb.child("Players").child(playerID).remove();
   //};
@@ -374,10 +458,7 @@ function loadScene(){
 
 function listenToItem(){
   fb.child("Games").child(gameID).child("Item").on("value", function(snapshot) {
-    console.log('evento change chick value');
     if (snapshot.exists()) {
-      console.log('snapshot exists');
-      console.log('snapshot: ', snapshot.exists());
       snapshot.forEach(function(childSnapshot) {
         const positionData = childSnapshot.val().position;
         const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
@@ -385,14 +466,12 @@ function listenToItem(){
       });
       
     } else {
-        console.log("No chickens found.");
+        console.log("No items found.");
     }
   }, function(error) {
-    console.error("Error fetching chickens:", error);
+    console.error("Error fetching items:", error);
   });
   fb.child("Games").child(gameID).child("Item").on("child_removed", function(snapshot) {
-    console.log('Entró al evento de borrar pollos');
-    console.log(snapshot.key());
     const deletedID = snapshot.key();
     if(item && (deletedID == item._ItemID)){
       scene.remove(item._Mesh);
@@ -461,10 +540,8 @@ function initChicken(){
   if(isServer == 'true' || isServer == true){
     for (let i = 0; i < 2; i++) {
       let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
-      console.log('Antes de instanciar chick');
       let chick = new Chick(chickID, gameID, chickGroup, scene, null, 'good');  
       setTimeout(() => {
-        console.log(chick._BB);
         mixers.push(chick._Mixer);
         chicks.push(chick);
         fb.child("Games").child(gameID).child("Chicken").child(chickID).set({
@@ -476,48 +553,43 @@ function initChicken(){
             z: chick._Mesh.position.z
           }
         });
-        console.log('chick._Active: ', chick._Active);
-        }, 10000);
+        }, 1000);
       
     }
     for (let i = 0; i < 2; i++) {
       let chickID = fb.child("Games").child(gameID).child("Chicken").push().key();
-      console.log('Antes de instanciar chick');
-      console.log('Dificulty:', difficulty);
       let modelType;
       if(difficulty == 'Facil'){
         modelType = 'bad';
       }else{
         modelType = 'bad2';
       }
-      console.log('modelType:', modelType);
       let chick = new Chick(chickID, gameID, chickGroup, scene, null, modelType);  
       setTimeout(() => {
-        console.log(chick._BB);
         mixers.push(chick._Mixer);
         chicksBad.push(chick);
         fb.child("Games").child(gameID).child("Chicken").child(chickID).set({
           active: true,
-          type: 'bad',
+          type: modelType,
           position:{
             x: chick._Mesh.position.x,
             y: chick._Mesh.position.y,
             z: chick._Mesh.position.z
           }
         });
-        console.log('chick._Active: ', chick._Active);
-      }, 10000);
+      }, 1000);
       
     }
   }else{
     fb.child("Games").child(gameID).child("Chicken").once("value", function(snapshot) {
-        // Checar si Chicken tiene hijos 
+        console.log('Instanciar chicken si no son server')
         if (snapshot.exists()) {
+          console.log('snapshot:', snapshot);
             snapshot.forEach(function(childSnapshot) {
+              console.log('childSnapshot: ', childSnapshot);
               if(childSnapshot.child("active").val()){
                 const positionData = childSnapshot.val().position;
                 const position = new THREE.Vector3(positionData.x, positionData.y, positionData.z);
-                console.log('childSnapshot.val(): ', childSnapshot.key());
                 console.log('type of chicken dificulty:', childSnapshot.val().type);
                 let chick = new Chick(childSnapshot.key(), gameID, chickGroup, scene, position, childSnapshot.val().type); 
 
@@ -726,6 +798,55 @@ function step(timeElapsed) {
 
   for (const playerID in otherPlayers) {
     otherPlayers[playerID].Update(timeElapsedS);
+  }
+
+  if(particles){
+
+    if(map == 'Invierno' ){
+      const positions = particles.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 1] -= 1; 
+        if (positions[i * 3 + 1] < -1000) {
+            positions[i * 3 + 1] = 1000;
+        }
+      }
+      particles.attributes.position.needsUpdate = true;
+    }else if(map == 'Otoño'){
+      const positions = particles.attributes.position.array;
+      const velocities = particles.attributes.velocity.array;
+      for (let i = 0; i < particleCount; i++) {
+          // Update particle position to fall and be affected by wind
+          positions[i * 3] += velocities[i * 3]; // x
+          positions[i * 3 + 1] += velocities[i * 3 + 1]; // y
+          positions[i * 3 + 2] += velocities[i * 3 + 2]; // z
+
+          // Reset the particle's position if it goes out of view
+          if (positions[i * 3 + 1] < -1000) {
+              positions[i * 3 + 1] = 1000;
+              positions[i * 3] = Math.random() * 2000 - 1000;
+              velocities[i * 3 + 1] = -Math.random();
+          }
+          if (positions[i * 3] > 1000 || positions[i * 3] < -1000) {
+              positions[i * 3] = Math.random() * 2000 - 1000;
+              velocities[i * 3] = (Math.random() - 0.5) * 2;
+          }
+          if (positions[i * 3 + 2] > 1000 || positions[i * 3 + 2] < -1000) {
+              positions[i * 3 + 2] = Math.random() * 2000 - 1000;
+              velocities[i * 3 + 2] = (Math.random() - 0.5) * 2;
+          }
+      }
+
+      particles.attributes.position.needsUpdate = true;
+    }else if(map == 'Primavera'){
+      const positions = particles.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 1] -= 3; 
+        if (positions[i * 3 + 1] < -1000) {
+            positions[i * 3 + 1] = 1000;
+        }
+      }
+      particles.attributes.position.needsUpdate = true;
+    }
   }
 
   checkCollisions();

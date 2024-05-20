@@ -35,7 +35,6 @@ class Item {
                 gltf.cameras; 
                 gltf.asset;
                 if(this._PositionRecieved){
-                    console.log('antes de establecer la posición;');
                     this._Mesh.position.set(this._PositionRecieved.x, this._PositionRecieved.y, this._PositionRecieved.z);
                 }else{
                     this._Mesh.position.set(this.randomNumber(-7,12),0,this.randomNumber(0,17));
