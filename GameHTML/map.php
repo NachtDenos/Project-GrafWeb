@@ -55,7 +55,8 @@
                                 nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
-                                map: 'Primavera'
+                                map: 'Primavera',
+                                pause: false
                             });
                             window.location.href = `game.php?id=${partidaID}&isServer=${isServer}`;
                         });
@@ -70,7 +71,8 @@
                                 nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
-                                map: 'Otoño'
+                                map: 'Otoño',
+                                pause: false
                             });
                             window.location.href = `game.php?id=${partidaID}&isServer=${isServer}`;
                         });
@@ -85,7 +87,8 @@
                                 nickname: name,
                                 mode: mode,
                                 difficulty: difficulty,
-                                map: 'Invierno'
+                                map: 'Invierno',
+                                pause: false
                             });
                             window.location.href = `game.php?id=${partidaID}&isServer=${isServer}`;
                         });

@@ -59,7 +59,6 @@ class Player {
         if(this._IsMainPlayer === true){
             setTimeout(() => {
                 console.log('Is main player: ', this._IsMainPlayer)
-                console.log('PORQQUE CHINGADOS ENTRA AQUI SI ES FALSO Q VERGAS');
                 this._BB = new THREE.Box3();
                 this._Mesh = this._Controls._target;
                 this._BB.setFromObject(this._Controls._target);

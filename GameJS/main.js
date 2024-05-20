@@ -29,6 +29,8 @@ let isEscPressed = false;
 let isEkeyPressed = false; 
 let collidedChickBad = false; 
 let gameStarted = false;
+let pause = false;
+let timerInveral;
 
 let effectsVolume = 100;
 let musicVolume = 100; 
@@ -147,7 +149,7 @@ function startTimer(){
   timer = 150;
 
   if(gameStarted){
-    let timerInterval = setInterval(updateTimer, 1000);
+    timerInterval = setInterval(updateTimer, 1000);
 
     setTimeout(() => {
       clearInterval(timerInterval); // Stop the timer interval
@@ -441,6 +443,19 @@ function loadScene(){
   });
 
   fb.child("Games").child(gameID).child("Players").on("child_removed", function(childSnapshot) {
+    scene.remove(otherPlayers[childSnapshot.key()]._Mesh);
+    scene.remove(otherPlayers[childSnapshot.key()]._boxHelper);
+
+    if(childSnapshot.val().isServer == true || childSnapshot.val().isServer == 'true'){
+      fb.child("Games").child(gameID).remove()
+            .then(function() {
+                alert('El servidor se desconecto');
+            })
+            .catch(function(error) {
+                console.error("Error removing game:", error);
+            });
+    }
+
     fb.child("Games").child(gameID).child("Players").once("value", function(snapshot) {
         if (!snapshot.exists()) {
           fb.child("Games").child(gameID).remove()
@@ -451,8 +466,19 @@ function loadScene(){
                 console.error("Error removing game:", error);
             });
           }
-      });
+    });
   });
+
+
+  fb.child("Games").child(gameID).child('Configuration').child('pause').on("value", function(snapshot){
+    pause = snapshot.val();
+    if(pause){
+      pantallaPause.style.display = 'block';
+    }else{
+      pantallaPause.style.display = 'none';
+    }
+  });
+
 
 } 
 
@@ -511,11 +537,15 @@ function keyDownEvents(event) {
     if (!isEscPressed) {
       console.log('First time Esc key pressed');
       isEscPressed = true;
-      pantallaPause.style.display = 'block';
+      pause = true;
+      fb.child("Games").child(gameID).child('Configuration').child('pause').set(pause);
+      //pantallaPause.style.display = 'block';
     } else {
       console.log('Esc key pressed again');
       isEscPressed = false;
-      pantallaPause.style.display = 'none';
+      pause = false;
+      fb.child("Games").child(gameID).child('Configuration').child('pause').set(pause);
+      //pantallaPause.style.display = 'none';
     }
   }
 
@@ -615,21 +645,35 @@ function initChicken(){
 
 function listenToChicken(){
   fb.child("Games").child(gameID).child("Chicken").on("value", function(snapshot) {
-      console.log('evento change chick value');
+    console.log('entro a listen to chicken');
       if (snapshot.exists()) {
-        console.log('snapshot exists');
-        console.log('snapshot: ', snapshot.exists());
         snapshot.forEach(function(childSnapshot) {
-          console.log('childSnapshot: ', childSnapshot);
           for(const chick of chicks) {
-            console.log(childSnapshot.key(), ' = ', chick._ChickID);
             if(childSnapshot.key() == chick._ChickID){
+              console.log('isServer:',isServer);
               if(isServer == 'false' || isServer == false){
+                console.log('se deberia copiar la posicion del pollo pq no es server');
+                console.log(childSnapshot.val().position);
                 chick._Mesh.position.copy(childSnapshot.val().position);
               }
-              console.log('childSnapshot.val().active: ', childSnapshot.val().active);
               chick._Active = childSnapshot.val().active;
-              console.log('chick._Active');
+              if(chick._Active){
+                chick._Mesh.visible = true; 
+              }else{
+                chick._Mesh.visible = false; 
+              }
+            }
+          }
+          for(const chick of chicksBad) {
+            if(childSnapshot.key() == chick._ChickID){
+              console.log('isServer:',isServer);
+              if(isServer == 'false' || isServer == false){
+                console.log('se deberia copiar la posicion del pollo pq no es server');
+                console.log(childSnapshot.val().position);
+                chick._Mesh.position.copy(childSnapshot.val().position);
+                chick._BB.setFromObject(chick._Mesh);
+              }
+              chick._Active = childSnapshot.val().active;
               if(chick._Active){
                 chick._Mesh.visible = true; 
               }else{
@@ -689,6 +733,7 @@ function initMainPlayer(){
     });
     const barnNum = numPrevPlayers+1;
     fb.child("Games").child(gameID).child("Players").child(playerID).child("barnNumber").set(barnNum);
+    fb.child("Games").child(gameID).child("Players").child(playerID).child("isServer").set(isServer);
     player = new Player(playerID, gameID, true, scene, camera, barnNum );
 
     setTimeout(() => {
@@ -790,74 +835,89 @@ function step(timeElapsed) {
   if (mixers) {
     mixers.map(m => m.update(timeElapsedS));
   }
-  
-
-  if (player) {
-    player.Update(timeElapsedS);
-  }
-
   for (const playerID in otherPlayers) {
     otherPlayers[playerID].Update(timeElapsedS);
   }
 
-  if(particles){
+  if(gameStarted && !pause){
 
-    if(map == 'Invierno' ){
-      const positions = particles.attributes.position.array;
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3 + 1] -= 1; 
-        if (positions[i * 3 + 1] < -1000) {
-            positions[i * 3 + 1] = 1000;
-        }
-      }
-      particles.attributes.position.needsUpdate = true;
-    }else if(map == 'Otoño'){
-      const positions = particles.attributes.position.array;
-      const velocities = particles.attributes.velocity.array;
-      for (let i = 0; i < particleCount; i++) {
-          // Update particle position to fall and be affected by wind
-          positions[i * 3] += velocities[i * 3]; // x
-          positions[i * 3 + 1] += velocities[i * 3 + 1]; // y
-          positions[i * 3 + 2] += velocities[i * 3 + 2]; // z
+    if (player) {
+      player.Update(timeElapsedS);
+    }
 
-          // Reset the particle's position if it goes out of view
+    if(particles){
+
+      if(map == 'Invierno' ){
+        const positions = particles.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3 + 1] -= 1; 
           if (positions[i * 3 + 1] < -1000) {
               positions[i * 3 + 1] = 1000;
-              positions[i * 3] = Math.random() * 2000 - 1000;
-              velocities[i * 3 + 1] = -Math.random();
           }
-          if (positions[i * 3] > 1000 || positions[i * 3] < -1000) {
-              positions[i * 3] = Math.random() * 2000 - 1000;
-              velocities[i * 3] = (Math.random() - 0.5) * 2;
-          }
-          if (positions[i * 3 + 2] > 1000 || positions[i * 3 + 2] < -1000) {
-              positions[i * 3 + 2] = Math.random() * 2000 - 1000;
-              velocities[i * 3 + 2] = (Math.random() - 0.5) * 2;
-          }
-      }
-
-      particles.attributes.position.needsUpdate = true;
-    }else if(map == 'Primavera'){
-      const positions = particles.attributes.position.array;
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3 + 1] -= 3; 
-        if (positions[i * 3 + 1] < -1000) {
-            positions[i * 3 + 1] = 1000;
         }
-      }
-      particles.attributes.position.needsUpdate = true;
-    }
-  }
+        particles.attributes.position.needsUpdate = true;
+      }else if(map == 'Otoño'){
+        const positions = particles.attributes.position.array;
+        const velocities = particles.attributes.velocity.array;
+        for (let i = 0; i < particleCount; i++) {
+            // Update particle position to fall and be affected by wind
+            positions[i * 3] += velocities[i * 3]; // x
+            positions[i * 3 + 1] += velocities[i * 3 + 1]; // y
+            positions[i * 3 + 2] += velocities[i * 3 + 2]; // z
 
-  checkCollisions();
+            // Reset the particle's position if it goes out of view
+            if (positions[i * 3 + 1] < -1000) {
+                positions[i * 3 + 1] = 1000;
+                positions[i * 3] = Math.random() * 2000 - 1000;
+                velocities[i * 3 + 1] = -Math.random();
+            }
+            if (positions[i * 3] > 1000 || positions[i * 3] < -1000) {
+                positions[i * 3] = Math.random() * 2000 - 1000;
+                velocities[i * 3] = (Math.random() - 0.5) * 2;
+            }
+            if (positions[i * 3 + 2] > 1000 || positions[i * 3 + 2] < -1000) {
+                positions[i * 3 + 2] = Math.random() * 2000 - 1000;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 2;
+            }
+        }
+
+        particles.attributes.position.needsUpdate = true;
+      }else if(map == 'Primavera'){
+        const positions = particles.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3 + 1] -= 3; 
+          if (positions[i * 3 + 1] < -1000) {
+              positions[i * 3 + 1] = 1000;
+          }
+        }
+        particles.attributes.position.needsUpdate = true;
+      }
+    }
+
+    for(const chick of chicks){
+      chick._Mesh.rotation.y += 0.01745329;
+    }
+    if(player && player._Mesh && player._Mesh.position && gameStarted && !pause){
+      for(const chick of chicksBad){
+        const delta = 0.016;
+        chick._UpdateEnemy(delta, player._Mesh);
+      }
+    }
+
+    checkCollisions(timeElapsed);
+
+  }
 }
 
 function updateTimer(){
-  if (timer > 0) {
-    timer --;
-    timerGUI.innerText = timer; 
-  }else{
-    window.location.href = `gameEnded.php?score=${player._Points}`;
+  if(!pause){
+    if (timer > 0) {
+      timer --;
+      timerGUI.innerText = timer; 
+    }else{
+      fb.child("Games").child(gameID).remove();
+      window.location.href = `gameEnded.php?score=${player._Points}`;
+    }
   }
 }
 
