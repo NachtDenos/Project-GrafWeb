@@ -52,7 +52,7 @@ class Chick {
                 console.log('antes de establecer la posición;');
                 this._Mesh.position.set(this._PositionRecieved.x, this._PositionRecieved.y, this._PositionRecieved.z);
             }else{
-                this._Mesh.position.set(this.randomNumber(-9,14), 0, this.randomNumber(0,19));
+                this._Mesh.position.set(this.randomNumber(-6,12), 0, this.randomNumber(1,16));
             }
             this._Mesh.traverse(c => {
             c.castShadow = true;
@@ -134,42 +134,66 @@ class Chick {
     _GenerateRandomPatrolPoints(numPoints) {
         const points = [];
         for (let i = 0; i < numPoints; i++) {
-            const randomPoint = new THREE.Vector3(this.randomNumber(6,12), 0.5, this.randomNumber(1,16));
+            const randomPoint = new THREE.Vector3(this.randomNumber(8,12), 0.5, this.randomNumber(1,16));
             points.push(randomPoint);
         }
         return points;
     }
 
-    _UpdateEnemy(delta, player) {
+    _UpdateEnemy(delta, players) {
         if (!this._pathfinding || !this._navmesh) return;
-
-        const distanceToPlayer = this._Mesh.position.distanceTo(player.position);
-
+    
+        // Find the closest player
+        let closestPlayer = null;
+        let closestDistance = Infinity;
+    
+        players.forEach(player => {
+            const distanceToPlayer = this._Mesh.position.distanceTo(player.position);
+            if (distanceToPlayer < closestDistance) {
+                closestDistance = distanceToPlayer;
+                closestPlayer = player;
+            }
+        });
+    
+        if (!closestPlayer) return;
+    
         // State transitions
-        if (this._currentState === this._states.PATROL && distanceToPlayer < this._chaseDistance) {
+        if (this._currentState === this._states.PATROL && closestDistance < this._chaseDistance) {
             this._currentState = this._states.CHASE;
-        } else if (this._currentState === this._states.CHASE && distanceToPlayer < this._attackDistance) {
+        } else if (this._currentState === this._states.CHASE && closestDistance < this._attackDistance) {
             this._currentState = this._states.ATTACK;
-        } else if (this._currentState === this._states.ATTACK && distanceToPlayer >= this._attackDistance) {
+        } else if (this._currentState === this._states.ATTACK && closestDistance >= this._attackDistance) {
             this._currentState = this._states.CHASE;
-        } else if (this._currentState === this._states.CHASE && distanceToPlayer >= this._chaseDistance) {
+        } else if (this._currentState === this._states.CHASE && closestDistance >= this._chaseDistance) {
             this._currentState = this._states.PATROL;
         }
-
+    
         console.log('patrol index: ', this._currentPatrolIndex);
         console.log('state:', this._currentState);
-
+    
         // State behaviors
         switch (this._currentState) {
             case this._states.PATROL:
                 this._Patrol(delta);
                 break;
             case this._states.CHASE:
-                this._Chase(delta, player);
+                this._Chase(delta, closestPlayer);
                 break;
             case this._states.ATTACK:
                 this._Attack();
                 break;
+        }
+    }
+    
+    _Chase(delta, player) {
+        const target = player.position;
+        console.log('player is target:', target);
+        this._groupId = this._pathfinding.getGroup(this._ZONE, this._Mesh.position);
+        const closest = this._pathfinding.getClosestNode(this._Mesh.position, this._ZONE, this._groupId);
+        const path = this._pathfinding.findPath(closest.centroid, target, this._ZONE, this._groupId);
+    
+        if (path) {
+            this._MoveAlongPath(path, delta);
         }
     }
 
@@ -185,18 +209,6 @@ class Chick {
             //if (this._Mesh.position.distanceTo(target) < 0.1) {
             //    this._currentPatrolIndex = (this._currentPatrolIndex + 1) % this._patrolPoints.length;
             //}
-        }
-    }
-
-    _Chase(delta, player) {
-        const target = player.position;
-        console.log('player is taget:', target);
-        this._groupId = this._pathfinding.getGroup(this._ZONE, this._Mesh.position);
-        const closest = this._pathfinding.getClosestNode(this._Mesh.position, this._ZONE, this._groupId);
-        const path = this._pathfinding.findPath(closest.centroid, target, this._ZONE, this._groupId);
-
-        if (path) {
-            this._MoveAlongPath(path, delta);
         }
     }
 

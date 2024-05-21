@@ -30,7 +30,7 @@ let isEkeyPressed = false;
 let collidedChickBad = false; 
 let gameStarted = false;
 let pause = false;
-let timerInveral;
+let timerInterval;
 
 let effectsVolume = 100;
 let musicVolume = 100; 
@@ -450,6 +450,7 @@ function loadScene(){
       fb.child("Games").child(gameID).remove()
             .then(function() {
                 alert('El servidor se desconecto');
+                window.location.href = `../menu.php`;
             })
             .catch(function(error) {
                 console.error("Error removing game:", error);
@@ -769,7 +770,6 @@ function listenToOtherPlayers(){
             if( playerID != playerData.key() && !otherPlayers[playerData.key()] ) {
                 otherPlayers[playerData.key()] = new Player(playerData.key(), gameID, false, scene, camera, playerData.child("barnNumber").val());
                 setTimeout(() => {
-                  //console.log(otherPlayers[playerData.key()]._Controls );
                   otherPlayers[playerData.key()]._Controls._target.position.copy( playerData.val().orientation.position );
                   otherPlayers[playerData.key()]._Controls._target.quaternion.copy( playerData.val().orientation.rotation );
                 }, 10000);
@@ -900,7 +900,15 @@ function step(timeElapsed) {
     if(player && player._Mesh && player._Mesh.position && gameStarted && !pause){
       for(const chick of chicksBad){
         const delta = 0.016;
-        chick._UpdateEnemy(delta, player._Mesh);
+        let players = [];
+        players.push(player._Mesh);
+        for(let playerID in otherPlayers){
+          if(otherPlayers[playerID] && otherPlayers[playerID]._Mesh && otherPlayers[playerID]._Mesh.position){
+            players.push(otherPlayers[playerID]._Mesh);
+          }
+        }
+        chick._UpdateEnemy(delta, players);
+        players = [];
       }
     }
 
@@ -1002,25 +1010,22 @@ function checkCollisions() {
           console.log('choque con mi casa');
           console.log(chicks);
           if(ChickGrabbed != null && isEkeyPressed){
-              for(const chick of chicks){
-                console.log(chicks);
-                console.log(chick._ChickID, ' = ', ChickGrabbed);
-                if(chick._ChickID == ChickGrabbed){
-                  ChickGrabbed = null;
-                  console.log('antes: ', chicks);
-                  chicks.pop(chick);
-                  console.log('despues: ', chicks);
-                  getEffect.play();
-                  scene.remove(chick._Mesh);
-                  scene.remove(chick._boxHelper);
-                  player._Points += 1;  
-                  document.getElementById('scoreGUI').innerHTML = player._Points;
-                  console.log('Puntos: ', player._Points);
-                  fb.child("Games").child(gameID).child("Chicken").child(chick._ChickID).remove();
-                  document.getElementById('iconHome').src = '../GameImages/GUI/homeGray.png';
-                  break;
-                }
-              }
+            const chickIndex = chicks.findIndex(chick => chick._ChickID === ChickGrabbed);
+            if (chickIndex !== -1) {
+              ChickGrabbed = null;
+              const chick = chicks[chickIndex];
+              console.log('antes: ', chicks);
+              chicks.splice(chickIndex, 1);
+              console.log('despues: ', chicks);
+              getEffect.play();
+              scene.remove(chick._Mesh);
+              scene.remove(chick._boxHelper);
+              player._Points += 1;
+              document.getElementById('scoreGUI').innerHTML = player._Points;
+              console.log('Puntos: ', player._Points);
+              fb.child("Games").child(gameID).child("Chicken").child(chick._ChickID).remove();
+              document.getElementById('iconHome').src = '../GameImages/GUI/homeGray.png';
+            }
           }
         }
       } 

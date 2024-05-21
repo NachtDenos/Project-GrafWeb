@@ -94,7 +94,7 @@ if (isset($_SESSION['username'])) {
                     "POST",
                     {
                         message: message,
-                        access_token: "EAANNCB2g0TgBO15hwQwnJnYrp0dmjC9hZCPENGDTT0HC580Q5nTFN59NOBVVI91HkDJYLEGJLASjrt5r5jAk6AZCacJhrhsaUl7XpZCh2UjJiOjKMWZCmXHFbTtRT3oRgDUibkN6Yg4d3rWxY8ZBqDIwAso3oMkdWGq4sOU6Okzk5Aeb3zxtTW8Q74tZCt8IZAdAZCO1BXiszPyOVZAGZBLsFhG1xE0fAdIAELzQZDZD",
+                        access_token: "EAANNCB2g0TgBO6UpxG0Wadc7OJT4VZBHfZBgAQhYq6lduSLCzhnL10ZCPT82VFKvYWtiahgfaCM6NBiA8yVv040obXRKTgwEYFHaHPMzwjZBlGrmZB8FlTGwxwlDu5bfrZCc8ipPZBZAHj4KNyNxOIjemuw7Knm0tcWDHvdtxfENgpdwbdCSDn7RiZCB0D72UMZCRiLFZAyemrDaMyJzZCCkZAy2DQ4Y3zXzkB5lo",
                     },
                     function(response) {
                         if (response && !response.error) {
