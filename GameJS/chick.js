@@ -46,7 +46,7 @@ class Chick {
         loader.setPath('../GameModels/');
         loader.load(modelo, (gltf) => {
             this._Mesh = gltf.scene;
-            this._Mesh.scale.setScalar(1);
+            this._Mesh.scale.setScalar(0.7);
             console.log(this._PositionRecieved);
             if(this._PositionRecieved){
                 console.log('antes de establecer la posición;');
@@ -134,7 +134,7 @@ class Chick {
     _GenerateRandomPatrolPoints(numPoints) {
         const points = [];
         for (let i = 0; i < numPoints; i++) {
-            const randomPoint = new THREE.Vector3(this.randomNumber(8,12), 0.5, this.randomNumber(1,16));
+            const randomPoint = new THREE.Vector3(this.randomNumber(3,12), 0.5, this.randomNumber(14,16));
             points.push(randomPoint);
         }
         return points;

@@ -6,7 +6,7 @@ import { Chick } from './chick.js';
 import { Item } from './item.js';
 
 let contenedor, renderer, scene, camera, mixers, previousRAF, controls, player, chickGroup, escenarioBB, mode, difficulty, map, gameID, isServer, bordesBB, timer, GamePlayers, timerWaitroom, damage, chickVelocity, fondoMusic, getEffect, damageEffect, item, itemBB, itemBoxHelper;
-
+let casa1, casa2, casa3, casa4;
 let fb = new Firebase("https://kollector-chicken-default-rtdb.firebaseio.com/data");
 
 let playerID;
@@ -15,6 +15,7 @@ let chicks = [];
 let chicksBad = [];
 let casasBB = [];
 let ChickGrabbed = null; 
+let vallasBB = [];
 
 let particles;
 let particleCount;
@@ -67,10 +68,10 @@ function initialize() {
             difficulty = gameData.Configuration.difficulty;
             map = gameData.Configuration.map;
             if(difficulty == 'Facil'){
-              damage = 10;
+              damage = 5;
               chickVelocity = 1.0;
             }else{
-              damage = 20; 
+              damage = 10; 
               chickVelocity = 2.0;
             }
             if(mode == 'Multijugador'){
@@ -261,68 +262,129 @@ function loadScene(){
   // -------------------------- COLISIONES ESCENARIO -------------------------- //
 
   const casa1Geometry = new THREE.BoxGeometry( 5, 4, 5 ); 
-  const casa1Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
-  const casa1 = new THREE.Mesh( casa1Geometry, casa1Material ); 
+  const casa1Material = new THREE.MeshBasicMaterial( {color: 0xffff00} ); 
+  casa1 = new THREE.Mesh( casa1Geometry, casa1Material ); 
   casa1.position.set(8.5,0,-4.5);
   casa1.rotation.set(0,45,0);
   scene.add( casa1 );
   const casa1BB = new THREE.Box3();
   casa1BB.setFromObject(casa1);
   casasBB.push(casa1BB);
-  const casa1BoxHelper = new THREE.Box3Helper(casa1BB, 0xffff00 );
-  casa1BoxHelper.updateMatrixWorld(true);
-  scene.add(casa1BoxHelper);
+  casa1.visible = false;
+  //const casa1BoxHelper = new THREE.Box3Helper(casa1BB, 0xffff00 );
+  //casa1BoxHelper.updateMatrixWorld(true);
+  //scene.add(casa1BoxHelper);
 
   const casa2Geometry = new THREE.BoxGeometry( 6, 4, 6 ); 
-  const casa2Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
-  const casa2 = new THREE.Mesh( casa2Geometry, casa2Material ); 
+  const casa2Material = new THREE.MeshBasicMaterial( {color: 0xffff00} ); 
+  casa2 = new THREE.Mesh( casa2Geometry, casa2Material ); 
   casa2.position.set(-9,0,-5);
   casa2.rotation.set(0,-34,0);
   scene.add( casa2 );
   const casa2BB = new THREE.Box3();
   casa2BB.setFromObject(casa2);
   casasBB.push(casa2BB);
-  const casa2BoxHelper = new THREE.Box3Helper(casa2BB, 0xffff00 );
-  casa2BoxHelper.updateMatrixWorld(true);
-  scene.add(casa2BoxHelper);
+  casa2.visible = false;
+  //const casa2BoxHelper = new THREE.Box3Helper(casa2BB, 0xffff00 );
+  //casa2BoxHelper.updateMatrixWorld(true);
+  //scene.add(casa2BoxHelper);
 
   const casa3Geometry = new THREE.BoxGeometry( 6, 4, 6 ); 
-  const casa3Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
-  const casa3 = new THREE.Mesh( casa3Geometry, casa3Material ); 
+  const casa3Material = new THREE.MeshBasicMaterial( {color: 0xffff00} ); 
+  casa3 = new THREE.Mesh( casa3Geometry, casa3Material ); 
   casa3.position.set(-17.5,0,9.5);
   casa3.rotation.set(0,0,0);
   scene.add( casa3 );
   const casa3BB = new THREE.Box3();
   casa3BB.setFromObject(casa3);
   casasBB.push(casa3BB);
-  const casa3BoxHelper = new THREE.Box3Helper(casa3BB, 0xffff00 );
-  casa3BoxHelper.updateMatrixWorld(true);
-  scene.add(casa3BoxHelper);
+  casa3.visible = false;
+  //const casa3BoxHelper = new THREE.Box3Helper(casa3BB, 0xffff00 );
+  //casa3BoxHelper.updateMatrixWorld(true);
+  //scene.add(casa3BoxHelper);
 
   const casa4Geometry = new THREE.BoxGeometry( 6, 4, 6 ); 
-  const casa4Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
-  const casa4 = new THREE.Mesh( casa4Geometry, casa4Material ); 
+  const casa4Material = new THREE.MeshBasicMaterial( {color: 0xffff00} ); 
+  casa4 = new THREE.Mesh( casa4Geometry, casa4Material ); 
   casa4.position.set(17.5,0,9);
   casa4.rotation.set(0,0.1,0);
   scene.add( casa4 );
   const casa4BB = new THREE.Box3();
   casa4BB.setFromObject(casa4);
   casasBB.push(casa4BB);
-  const casa4BoxHelper = new THREE.Box3Helper(casa4BB, 0xffff00 );
-  casa4BoxHelper.updateMatrixWorld(true);
-  scene.add(casa4BoxHelper);
-
-  //const casa4Geometry = new THREE.BoxGeometry( 6, 4, 6 ); 
-  //const casa4Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
-  //const casa4 = new THREE.Mesh( casa4Geometry, casa4Material ); 
-  //casa4.position.set(17.5,0,9);
-  //casa4.rotation.set(0,0.1,0);
-  //scene.add( casa4 );
-  //const casa4BB = new THREE.Box3();
-  //casa4BB.setFromObject(casa4);
+  casa4.visible = false;
   //const casa4BoxHelper = new THREE.Box3Helper(casa4BB, 0xffff00 );
   //casa4BoxHelper.updateMatrixWorld(true);
   //scene.add(casa4BoxHelper);
+
+  //-------------------------------------- VALLAS --------------------------//
+  const vallaGeometry = new THREE.BoxGeometry( 6, 4, 2 ); 
+  const vallaMaterial = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+  const valla = new THREE.Mesh( vallaGeometry, vallaMaterial ); 
+  valla.position.set(0,0,-5);
+  scene.add( valla );
+  const vallaBB = new THREE.Box3();
+  vallaBB.setFromObject(valla);
+  vallasBB.push(vallaBB);
+  valla.visible = false;
+  //const vallaBoxHelper = new THREE.Box3Helper(vallaBB, 0xffff00 );
+  //vallaBoxHelper.updateMatrixWorld(true);
+  //scene.add(vallaBoxHelper);
+
+  const valla2Geometry = new THREE.BoxGeometry( 8, 4, 8 ); 
+  const valla2Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+  const valla2 = new THREE.Mesh( valla2Geometry, valla2Material ); 
+  valla2.position.set(16,0,0);
+  valla2.rotation.set(0,0.5,0);
+  scene.add( valla2);
+  const valla2BB = new THREE.Box3();
+  valla2BB.setFromObject(valla2);
+  vallasBB.push(valla2BB);
+  valla2.visible = false;
+  //const valla2BoxHelper = new THREE.Box3Helper(valla2BB, 0xffff00 );
+  //valla2BoxHelper.updateMatrixWorld(true);
+  //scene.add(valla2BoxHelper);
+
+  const valla3Geometry = new THREE.BoxGeometry(10, 4, 10); 
+  const valla3Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+  const valla3 = new THREE.Mesh( valla3Geometry, valla3Material ); 
+  valla3.position.set(17,0,19);
+  valla3.rotation.set(0,-0.4,0);
+  scene.add( valla3);
+  const valla3BB = new THREE.Box3();
+  valla3BB.setFromObject(valla3);
+  vallasBB.push(valla3BB);
+  valla3.visible = false;
+  //const valla3BoxHelper = new THREE.Box3Helper(valla3BB, 0xffff00 );
+  //valla3BoxHelper.updateMatrixWorld(true);
+  //scene.add(valla3BoxHelper);
+
+  const valla4Geometry = new THREE.BoxGeometry( 10, 4, 10 ); 
+  const valla4Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+  const valla4 = new THREE.Mesh( valla4Geometry, valla4Material ); 
+  valla4.position.set(-17,0,19);
+  valla4.rotation.set(0,0.4,0);
+  scene.add( valla4);
+  const valla4BB = new THREE.Box3();
+  valla4BB.setFromObject(valla4);
+  vallasBB.push(valla4BB);
+  valla4.visible = false;
+  //const valla4BoxHelper = new THREE.Box3Helper(valla4BB, 0xffff00 );
+  //valla4BoxHelper.updateMatrixWorld(true);
+  //scene.add(valla4BoxHelper);
+
+  const valla5Geometry = new THREE.BoxGeometry(20, 4, 2 ); 
+  const valla5Material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+  const valla5 = new THREE.Mesh( valla5Geometry, valla5Material ); 
+  valla5.position.set(0,0,26);
+  scene.add( valla5 );
+  const valla5BB = new THREE.Box3();
+  valla5BB.setFromObject(valla5);
+  vallasBB.push(valla5BB);
+  valla5.visible = false;
+  //const valla5BoxHelper = new THREE.Box3Helper(valla5BB, 0xffff00 );
+  //valla5BoxHelper.updateMatrixWorld(true);
+  //scene.add(valla5BoxHelper);
 
 
   mixers = [];
@@ -741,16 +803,20 @@ function initMainPlayer(){
       let quaternion = new THREE.Quaternion();
       if(barnNum == 1){
         player._Controls._target.position.copy(new THREE.Vector3(8,0,0.5));
+        casa1.visible = true;
       }else if (barnNum == 2) {
         player._Controls._target.position.copy(new THREE.Vector3(-8,0,0.5));
+        casa2.visbile = true;
       }else if (barnNum == 3) {
         player._Controls._target.position.copy(new THREE.Vector3(-13,0,9.5));
         quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), 1.5708);
         player._Controls._target.quaternion.copy(quaternion);
+        casa3.visible = true;
       }else if(barnNum == 4) {
         player._Controls._target.position.copy(new THREE.Vector3(13,0,9));
         quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), -1.5708);
         player._Controls._target.quaternion.copy(quaternion);
+        casa4.visible = true;
       }
     }, 2000);
 
@@ -982,11 +1048,11 @@ function checkCollisions() {
               collidedChickBad = true; 
               player._Health -= damage;
               let currentWidth = parseFloat(document.getElementById('healthBar').style.width); // Parse the current width as a number
-              let newWidth = currentWidth - 12.8; // Subtract 12.8 from the current width
-              if(damage == 20){
-                newWidth = currentWidth -16;
+              let newWidth = currentWidth - 6.4; // Subtract 12.8 from the current width
+              if(damage == 10){
+                newWidth = currentWidth - 12.8;
               }
-              console.log(newWidth);
+              console.log(player._Health);
               document.getElementById('healthBar').style.width = newWidth + '%';
               if(player._Health <= 0){
                 alert('Lo siento! Perdiste!');
@@ -996,7 +1062,7 @@ function checkCollisions() {
             }else{
               setTimeout(()=>{
                 collidedChickBad = false; 
-              },2000);
+              },6000);
             }
           }
         }
@@ -1063,6 +1129,14 @@ function checkCollisions() {
         }
       } 
     }
+
+    for (const [index, valla] of vallasBB.entries()){
+      if (player._BB.intersectsBox(valla)) {
+        player._Controls._input._keys.forward = false; 
+        player._Controls._velocity = new THREE.Vector3(0, 0, 0);
+      } 
+    }
+
   }
 }
 
